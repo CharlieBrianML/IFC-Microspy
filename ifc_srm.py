@@ -19,9 +19,11 @@ import interfaceTools as it
 	
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata = (None,None,None,None, None)
+entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification = (None,None,None,None, None)
 
 def deconvolution_parameters():
 	global entryIterations, entryWeight, dropdownImg, dropdownPSF, metadata
+	global entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification
 
 	if (it.file.split('.')[1]=='oib'):
 		metadata = oib.getMetadata(it.file)
@@ -74,6 +76,12 @@ def deconvolution_event():
 	dv.deconvolutionMain(img_tensor,multipsf,entryIterations.get(),entryWeight.get())
 	
 def createpsf_event():
+	metadata['Channel 1 Parameters']['ExcitationWavelength'] = float(entryex_wavelen.get())
+	metadata['Channel 1 Parameters']['EmissionWavelength'] = float(entryem_wavelen.get())
+	metadata['num_aperture'] = float(entrynum_aperture.get())
+	metadata['pinhole_radius'] = float(entrypinhole_radius.get())
+	metadata['magnification'] = float(entrymagnification.get())
+	
 	cpsf.shape_psf(oib.get_matrix_oib(it.file),metadata)
 
 #Se crea la ventana principal del programa

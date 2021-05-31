@@ -130,10 +130,10 @@ def constructpsf(metadata, channel):
 	dims = (metadata['Axis 3 Parameters Common']['EndPosition']/1000,metadata['Axis 0 Parameters Common']['EndPosition'])
 	ex_wavelen = metadata['Channel '+str(channel)+' Parameters']['ExcitationWavelength']
 	em_wavelen = metadata['Channel '+str(channel)+' Parameters']['EmissionWavelength']
-	num_aperture = 1.35
-	pinhole_radius = 85000/1000
-	magnification = 0.75
-	refr_index = 1.5
+	num_aperture = metadata['num_aperture']
+	pinhole_radius = metadata['pinhole_radius']
+	magnification = metadata['magnification']
+	refr_index = metadata['refr_index']
 	print('shape: ', shape)
 	print('dims: ', dims)
 	print('ex_wavelen: ',ex_wavelen)
@@ -150,7 +150,7 @@ def shape_psf(tensor, metadata):
 	if (dimtensor>2):
 		multipsf = np.zeros((tensor.shape[0],tensor.shape[1],tensor.shape[2],tensor.shape[3]))
 		for i in range(tensor.shape[0]):
-			print('Generating psf channel: ',i)
+			print('\nGenerating psf channel: ',i)
 			multipsf[i,:,:,:] = constructpsf(metadata, i+1)		
 		# from tifffile import imsave
 		# imsave('psf_vol.tif', np.uint8(multipsf),  metadata = {'axes':'TZCYX'}, imagej=True)
