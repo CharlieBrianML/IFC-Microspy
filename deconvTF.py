@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ## ###############################################
+#
+# deconvTF.py
+# Deconvoluciona una imagen haciendo uso de tensorflow
+#
+# Autor: Charlie Brian Monterrubio Lopez
+# License: MIT
+#
+# ## ###############################################
+
 from flowdec import data as fd_data
 from flowdec import restoration as fd_restoration
 

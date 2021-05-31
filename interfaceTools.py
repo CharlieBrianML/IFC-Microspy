@@ -2,6 +2,18 @@ from tkinter import *    # Carga módulo tk (widgets estándar)
 from tkinter import filedialog as fd
 from tkinter import ttk  # Carga ttk (para widgets nuevos 8.5+)
 from PIL import ImageTk, Image
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ## ###############################################
+#
+# interfaceTools.py
+# Contiene todas las herramientas para la creacion de una interfaz
+#
+# Autor: Charlie Brian Monterrubio Lopez
+# License: MIT
+#
+# ## ###############################################
+
 import cv2 
 import os
 

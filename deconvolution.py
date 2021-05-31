@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ## ###############################################
+#
+# deconvolucion.py
+# Gestiona el proceso de deconvolucion
+#
+# Autor: Charlie Brian Monterrubio Lopez
+# License: MIT
+#
+# ## ###############################################
+
 from time import time
 from time import sleep
 import interfaceTools as it

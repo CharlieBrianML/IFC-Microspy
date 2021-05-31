@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ## ###############################################
+#
+# imageFunctions.py
+# Contiene todas las herramientas para el procesamiento de imagenes
+#
+# Autor: Charlie Brian Monterrubio Lopez
+# License: MIT
+#
+# ## ###############################################
+
 from skimage.exposure import rescale_intensity
 from skimage.restoration import denoise_tv_chambolle
 import numpy as np

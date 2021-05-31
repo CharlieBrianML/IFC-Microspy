@@ -1,5 +1,14 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# ## ###############################################
+#
 # createPSF.py
+# Genera una matriz o tensor que contiene una psf dados metadatos de entrada
+#
+# Autor: Charlie Brian Monterrubio Lopez
+# License: MIT
+#
+# ## ###############################################
 
 """Point Spread Function example.
 

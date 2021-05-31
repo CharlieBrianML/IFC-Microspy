@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ## ###############################################
+#
+# oibread.py
+# Contiene las herramientas para procesar un archivo .oib
+#
+# Autor: Charlie Brian Monterrubio Lopez
+# License: MIT
+#
+# ## ###############################################
+
 from oiffile import *
 
 def getMetadata(filename):

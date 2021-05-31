@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ## ###############################################
+#
+# tiff.py
+# Contiene las funciones para lectura y procesamiento de archivos .tif
+#
+# Autor: Charlie Brian Monterrubio Lopez
+# License: MIT
+#
+# ## ###############################################
+
 import cv2
 import tifffile
 import numpy as np
