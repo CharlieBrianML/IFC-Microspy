@@ -18,13 +18,14 @@ import numpy as np
 import interfaceTools as it
 	
 
-entryIterations,entryWeight,dropdownImg, dropdownPSF = (None,None,None,None)
+entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata = (None,None,None,None, None)
 
 def deconvolution_parameters():
-	global entryIterations, entryWeight, dropdownImg, dropdownPSF
-	
-	if (it.file.split('.')[1]=='.oib'):
-		metadata = oib.get_metadata(it.file)
+	global entryIterations, entryWeight, dropdownImg, dropdownPSF, metadata
+
+	if (it.file.split('.')[1]=='oib'):
+		metadata = oib.getMetadata(it.file)
+		print('Hola estoy aqui')
 	opcDeconv = it.NewWindow('Deconvolution parameters','300x380') #Objeto de la clase NewWindow
 	
 	opcDeconv.createLabel('Image: ',20,20)
@@ -63,13 +64,17 @@ def deconvolution_parameters():
 	
 	# dropdownImg = opcDeconv.createCombobox(110,20)
 	# dropdownPSF = opcDeconv.createCombobox(110,50)
-	opcDeconv.createButton('OK', deconvolution_event, 'bottom')
+	opcDeconv.createButton('Deconvolution', deconvolution_event, 'bottom')
+	opcDeconv.createButton('Generate psf', createpsf_event, 'bottom')
 
 def deconvolution_event():
 	global entryIterations, entryWeight, dropdownImg, dropdownPSF
 	img_tensor = oibr.get_matrix_oib(it.file)
 	#dv.deconvolutionMain(img_tensor,multipsf,1,20)
 	dv.deconvolutionMain(img_tensor,multipsf,entryIterations.get(),entryWeight.get())
+	
+def createpsf_event():
+	cpsf.shape_psf(oib.get_matrix_oib(it.file),metadata)
 
 #Se crea la ventana principal del programa
 it.createWindowMain()
