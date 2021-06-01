@@ -32,14 +32,14 @@ def openFile():
 		filesPath.append(file)
 		nameFile = file.split('/')[len(file.split('/'))-1]
 		if(os.path.splitext(nameFile)[1]=='.tif'):
-			print('Este es un tif')
+			print('Archivo .tif')
 			venImg = NewWindow(nameFile)
 			scrollbar = Scrollbar(venImg.window, orient=HORIZONTAL, takefocus=10)
 			scrollbar.pack(side="top", fill="x")
 			scrollbar.config(command=scrollImage)
 			venImg.placeImage(file)
 		elif(os.path.splitext(nameFile)[1]=='.oib'):	
-			print('Este es un oib')
+			print('Archivo .oib')
 			from tkinter import messagebox
 			messagebox.showinfo(message='file '+ file +' has been opened', title="File")
 			# venImg = NewWindow(nameFile)
@@ -142,18 +142,22 @@ class NewWindow:
 		
 	def createButton(self,text, command, side):
 		ttk.Button(self.window, text=text, command=command).pack(side=side)	
+
+	def createButtonXY(self,text, command, x, y):
+		ttk.Button(self.window, text=text, command=command).place(x=x,y=y)	
 		
 	def createLabel(self,text,x,y):
 		#Label(self.window, text=text).pack(anchor=CENTER)
 		label = Label(self.window, text=text, font=("Arial", 12)).place(x=x, y=y)
 
-	def createEntry(self,stringVar,x,y, disabled=False):
+	def createEntry(self,stringVar,x,y, width=10,disabled=False):
 		if disabled:
-			entry = ttk.Entry(self.window)
+			entry = ttk.Entry(self.window, width=width)
 			entry.insert(0,stringVar)
 			entry.configure(state=DISABLED)
 		else:
-			entry = ttk.Entry(self.window, textvariable=stringVar)
+			entry = ttk.Entry(self.window, width=width)
+		entry.insert(0, stringVar)
 		entry.place(x=x, y=y)
 		return entry
 		

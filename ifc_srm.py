@@ -19,54 +19,66 @@ import interfaceTools as it
 	
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata = (None,None,None,None, None)
-entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification = (None,None,None,None, None)
+entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr = (None,None,None,None,None,None, None)
 
 def deconvolution_parameters():
 	global entryIterations, entryWeight, dropdownImg, dropdownPSF, metadata
-	global entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification
+	global entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr
 
 	if (it.file.split('.')[1]=='oib'):
 		metadata = oib.getMetadata(it.file)
-		print('Hola estoy aqui')
-	opcDeconv = it.NewWindow('Deconvolution parameters','300x380') #Objeto de la clase NewWindow
+		
+	opcDeconv = it.NewWindow('Deconvolution parameters','300x650') #Objeto de la clase NewWindow
 	
 	opcDeconv.createLabel('Image: ',20,20)
 	opcDeconv.createLabel('PSF: ',20,50)
 	opcDeconv.createLabel('Iterations: ',20,80)
-	opcDeconv.createLabel('Weight: ',20,110)
-	opcDeconv.createLabel('Ex_wavelen: ',20,140)
-	opcDeconv.createLabel('Em_wavelen: ',20,170)
-	opcDeconv.createLabel('Num_aperture: ',20,200)
-	opcDeconv.createLabel('Pinhole_radius: ',20,230)
-	opcDeconv.createLabel('Magnification: ',20,260)
+	opcDeconv.createLabel('Weight TV: ',20,110)
 	
-	entryIterations = opcDeconv.createEntry('50',110,80)
-	entryWeight = opcDeconv.createEntry('20',110,110)
+	opcDeconv.createLabel('PSF parameters ',20,170)
+	opcDeconv.createLabel('Ex_wavelenCh1:                       [nm]',20,200)
+	opcDeconv.createLabel('Ex_wavelenCh2:                       [nm]',20,230)
+	opcDeconv.createLabel('Ex_wavelenCh3:                       [nm]',20,260)
+	opcDeconv.createLabel('Ex_wavelenCh4:                       [nm]',20,290)
 	
-	entryex_wavelen = opcDeconv.createEntry('30',140,140)
-	entryex_wavelen.insert(0, metadata['Channel 1 Parameters']['ExcitationWavelength'])
+	opcDeconv.createLabel('Em_wavelenCh1:                     [nm] ',20,320)
+	opcDeconv.createLabel('Em_wavelenCh2:                     [nm]',20,350)
+	opcDeconv.createLabel('Em_wavelenCh3:                     [nm]',20,380)
+	opcDeconv.createLabel('Em_wavelenCh4:                     [nm]',20,410)
 	
-	entryem_wavelen = opcDeconv.createEntry('40',140,170)
-	entryem_wavelen.insert(0, metadata['Channel 1 Parameters']['EmissionWavelength'])
+	opcDeconv.createLabel('Num_aperture:',20,440)
+	opcDeconv.createLabel('Pinhole_radius:                         [um]',20,470)
+	opcDeconv.createLabel('Magnification:',20,500)
+	opcDeconv.createLabel('Refr_index:',20,530)
+	opcDeconv.createLabel('Dim_z:                                       [um]',20,560)
+	opcDeconv.createLabel('Dim_r:                                       [um]',20,590)
 	
-	entrynum_aperture = opcDeconv.createEntry('51',140,200)
-	entrynum_aperture.insert(0, 1.35)
+	entryimg = opcDeconv.createEntry(it.file.split('/')[len(it.file.split('/'))-1],110,20, 25,True)
+	entrypsf = opcDeconv.createEntry('psf_'+it.file.split('/')[len(it.file.split('/'))-1],110,50,25, True)	
 	
-	entrypinhole_radius = opcDeconv.createEntry('60',140,230)
-	entrypinhole_radius.insert(0, 85000/1000)
+	entryIterations = opcDeconv.createEntry('',110,80,25)
+	entryWeight = opcDeconv.createEntry('',110,110,25)
 	
-	entrymagnification = opcDeconv.createEntry('70',140,260)
-	entrymagnification.insert(0, 0.75)
+	entryex_wavelench1 = opcDeconv.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,200)
+	entryex_wavelench2 = opcDeconv.createEntry(metadata['Channel 2 Parameters']['ExcitationWavelength'],160,230)
+	entryex_wavelench3 = opcDeconv.createEntry(metadata['Channel 3 Parameters']['ExcitationWavelength'],160,260)
+	entryex_wavelench4 = opcDeconv.createEntry(metadata['Channel 4 Parameters']['ExcitationWavelength'],160,290)
 	
-	entryimg = opcDeconv.createEntry(it.file.split('/')[len(it.file.split('/'))-1],110,20, True)
-	#entryimg.insert(0, it.file)	
+	entryem_wavelench1 = opcDeconv.createEntry(metadata['Channel 1 Parameters']['EmissionWavelength'],160,320)
+	entryem_wavelench2 = opcDeconv.createEntry(metadata['Channel 2 Parameters']['EmissionWavelength'],160,350)
+	entryem_wavelench3 = opcDeconv.createEntry(metadata['Channel 3 Parameters']['EmissionWavelength'],160,380)
+	entryem_wavelench4 = opcDeconv.createEntry(metadata['Channel 4 Parameters']['EmissionWavelength'],160,410)
 	
-	entrypsf = opcDeconv.createEntry('psf_'+it.file.split('/')[len(it.file.split('/'))-1],110,50, True)
-	#entrypsf.insert(0, 'psf_'+it.file)
+	entrynum_aperture = opcDeconv.createEntry(metadata['num_aperture'],160,440)
+	entrypinhole_radius = opcDeconv.createEntry(metadata['pinhole_radius'],160,470)
+	entrymagnification = opcDeconv.createEntry(metadata['magnification'],160,500)
+	entrymagnification = opcDeconv.createEntry(metadata['refr_index'],160,530)
+	entrydimz = opcDeconv.createEntry(metadata['Axis 3 Parameters Common']['EndPosition']/1000,160,560)
+	entrydimr = opcDeconv.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,590)
 	
 	# dropdownImg = opcDeconv.createCombobox(110,20)
 	# dropdownPSF = opcDeconv.createCombobox(110,50)
-	opcDeconv.createButton('Deconvolution', deconvolution_event, 'bottom')
+	opcDeconv.createButtonXY('Deconvolution', deconvolution_event, 100, 140)
 	opcDeconv.createButton('Generate psf', createpsf_event, 'bottom')
 
 def deconvolution_event():
@@ -81,6 +93,8 @@ def createpsf_event():
 	metadata['num_aperture'] = float(entrynum_aperture.get())
 	metadata['pinhole_radius'] = float(entrypinhole_radius.get())
 	metadata['magnification'] = float(entrymagnification.get())
+	metadata['Axis 3 Parameters Common']['EndPosition'] = float(entrydimz.get())
+	metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
 	
 	cpsf.shape_psf(oib.get_matrix_oib(it.file),metadata)
 
