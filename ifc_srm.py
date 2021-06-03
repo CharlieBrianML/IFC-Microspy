@@ -115,8 +115,8 @@ it.createCommand(opc2, "Deconvolution", deconvolution_parameters)
 #it.createCommand(opc2, "Salir", mainWindow.quit)
 it.createCascade(menu, 'Image', opc2)
 
-it.createStatusBar()
+#it.createStatusBar()
 statusBar = it.createStatusBar()
-statusBar['text']=dv.message
+#statusBar['text']=dv.message
 
 it.mainWindow.mainloop()

@@ -1,7 +1,3 @@
-from tkinter import *    # Carga módulo tk (widgets estándar)
-from tkinter import filedialog as fd
-from tkinter import ttk  # Carga ttk (para widgets nuevos 8.5+)
-from PIL import ImageTk, Image
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ## ###############################################
@@ -14,8 +10,14 @@ from PIL import ImageTk, Image
 #
 # ## ###############################################
 
+from tkinter import *    # Carga módulo tk (widgets estándar)
+from tkinter import filedialog as fd
+from tkinter import ttk  # Carga ttk (para widgets nuevos 8.5+)
+from PIL import ImageTk, Image
+
 import cv2 
 import os
+import oibread as oib
 
 # Define la ventana principal de la aplicación
 mainWindow = Tk() 
@@ -24,9 +26,11 @@ file = ''
 filesName = []
 filesPath = []
 statusbar = None
+tensor_img = None
+panelImg = None
 
 def openFile():
-	global file
+	global file, tensor_img, panelImg
 	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Seleccione archivo', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif')))
 	if(len(file)>0):
 		filesPath.append(file)
@@ -40,22 +44,32 @@ def openFile():
 			venImg.placeImage(file)
 		elif(os.path.splitext(nameFile)[1]=='.oib'):	
 			print('Archivo .oib')
-			from tkinter import messagebox
-			messagebox.showinfo(message='file '+ file +' has been opened', title="File")
-			# venImg = NewWindow(nameFile)
-			# scrollbar = Scrollbar(venImg.window, orient=HORIZONTAL, takefocus=10)
-			# scrollbar.pack(side="top", fill="x")
-			# scrollbar.config(command=scrollImage)
-			# venImg.placeImage(file)
+			tensor_img = oib.get_matrix_oib(file)
+			print(tensor_img.shape)
+			#from tkinter import messagebox
+			#messagebox.showinfo(message='file '+ file +' has been opened', title="File")
+			
+			if tensor_img.ndim == 4:
+				venImg = NewWindow(nameFile)
+				venImg.update_axes(tensor_img.shape[0],tensor_img.shape[1])
+				venImg.createStatusBar()
+				scrollz = venImg.scrollbarz(tensor_img.shape[1]-1)
+				scrollc = venImg.scrollbarc(tensor_img.shape[0]-1)
+				panelImg = venImg.placeImageTensor(tensor_img[0,0,:,:])
+			
+			if tensor_img.ndim == 3:
+				venImg = NewWindow(nameFile)
+				venImg.update_axes(tensor_img.shape[0],0)
+				venImg.createStatusBar()
+				scrollc = venImg.scrollbarc(tensor_img.shape[0]-1, zscroll=False)
+				panelImg = venImg.placeImageTensor(tensor_img[0,:,:])
+			
 		else:
 			venImg = NewWindow(nameFile)
 			#newVen = venImg.createNewWindow(file.split('/')[len(file.split('/'))-1])
 			venImg.placeImage(file)
 	#venImg = createNewWindow(file)
 	#placeImage(venImg, file)
-	
-def scrollImage(*args):
-	print('Estoy desplazando la imagen')
 	
 def saveFile():
 	global file
@@ -122,6 +136,10 @@ class NewWindow:
 		self.window.resizable(width=False,height=False)
 		self.window.title(self.nameWindow)
 		self.img = None
+		self.axisz_max = 0
+		self.axisc_max = 0
+		self.posz = 0
+		self.posc = 0
 		
 	def on_closing(self):
 		print('Se cerro: ', self.nameWindow)
@@ -139,6 +157,17 @@ class NewWindow:
 		self.panel = Label(self.window, image = self.img)
 		self.panel.image = self.img
 		self.panel.pack()
+
+	def placeImageTensor(self,img):
+		
+		# resize image
+		resized = self.resize_image_percent(img, 60)
+		
+		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
+		self.panel = Label(self.window, image = self.img)
+		self.panel.image = self.img
+		self.panel.pack()
+		return self.panel
 		
 	def createButton(self,text, command, side):
 		ttk.Button(self.window, text=text, command=command).pack(side=side)	
@@ -169,3 +198,120 @@ class NewWindow:
 		if (len(filesName)>0):
 			dropdown.current(0)
 		return dropdown
+		
+	def scrollbarz(self, maxpos):
+		self.scrollbarz = Scrollbar(self.window, orient=HORIZONTAL, command=self.scrollImagez)
+		self.scrollbarz.pack(side=BOTTOM,fill=X)
+		
+		self.listboxz = Listbox(self.window, yscrollcommand=self.scrollbarz.set)
+		for i in range(10+maxpos):
+			self.listboxz.insert("end", '')
+		self.listboxz.place(x=50,y=50)
+		return self.scrollbarz
+		
+	def scrollbarc(self, maxpos, zscroll = True):
+		if zscroll:
+			self.scrollbarc = Scrollbar(self.window, orient=HORIZONTAL, command=self.scrollImagec)
+			self.scrollbarc.pack(side=BOTTOM,fill=X)
+		else:
+			self.scrollbarc = Scrollbar(self.window, orient=HORIZONTAL, command=self.scrollImagecs)
+			self.scrollbarc.pack(side=BOTTOM,fill=X)		
+		
+		self.listboxc = Listbox(self.window, yscrollcommand=self.scrollbarc.set)
+		for i in range(10+maxpos):
+			self.listboxc.insert("end", '')
+		self.listboxc.place(x=50,y=50)
+		return self.scrollbarc
+		
+	def createStatusBar(self):
+		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)
+		self.statusbar = Label(self.window, text=self.text, bd=1, relief=SUNKEN, anchor=W)
+		self.statusbar.pack(side=TOP, fill=X)
+		return self.statusbar
+		
+	def update_axes(self, axisc_max, axisz_max):
+		self.axisz_max = axisz_max
+		self.axisc_max = axisc_max
+		
+	def resize_image_percent(self, img, percent):
+		import cv2
+		import numpy as np
+		import imageFunctions as imf
+		width = int(img.shape[1] * percent / 100)
+		height = int(img.shape[0] * percent / 100)
+		dim = (width, height)	
+		
+		# resize image
+		print(type(img[0,0]))
+		#resized = cv2.resize(img, dim)
+		#resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+		#resized = np.uint8(cv2.resize(img, dim, interpolation = cv2.INTER_LINEAR))
+		resized = cv2.resize(img, dim, interpolation = cv2.INTER_LINEAR)
+		# resized = cv2.resize(img, dim, interpolation = cv2.INTER_NEAREST)
+		# resized = cv2.resize(img, dim, interpolation = cv2.INTER_NEAREST)
+		# resized = cv2.resize(img, dim, interpolation = cv2.INTER_CUBIC)
+		#np.uint8(255*matrix)
+		print(resized.max())
+		
+		return imf.normalizar(resized)
+		#return resized
+		
+	def scrollImagez(self, *args):
+		global panelImg
+		print('Estoy desplazando la imagen')
+		print(args)
+
+		if (int(args[1]) == -1 and self.posz > 0):
+			self.posz = self.posz - 1
+		if (int(args[1]) == 1 and self.posz < self.axisz_max-1):
+			self.posz = self.posz + 1
+			
+		print(self.posc,self.posz)
+		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)
+		self.statusbar.configure(text = self.text)
+		resized = self.resize_image_percent(tensor_img[self.posc,self.posz,:,:],60)
+		img = ImageTk.PhotoImage(image=Image.fromarray(resized))
+
+		panelImg['image'] = img
+		panelImg.image = img
+		self.scrollbarz.config(command=self.listboxz.yview(self.posz))	
+		
+	def scrollImagec(self, *args):
+		global panelImg
+		print('Estoy desplazando la imagen')
+		print(args)
+
+		if (int(args[1]) == -1 and self.posc > 0):
+			self.posc = self.posc - 1
+		if (int(args[1]) == 1 and self.posc < self.axisc_max-1):
+			self.posc = self.posc + 1
+			
+		print(self.posc,self.posz)
+		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)
+		self.statusbar.configure(text = self.text)
+		resized = self.resize_image_percent(tensor_img[self.posc,self.posz,:,:],60)
+		img = ImageTk.PhotoImage(image=Image.fromarray(resized))
+
+		panelImg['image'] = img
+		panelImg.image = img			
+		self.scrollbarc.config(command=self.listboxc.yview(self.posc))	
+		
+	def scrollImagecs(self, *args):
+		global panelImg
+		print('Estoy desplazando la imagen')
+		print(args)
+
+		if (int(args[1]) == -1 and self.posc > 0):
+			self.posc = self.posc - 1
+		if (int(args[1]) == 1 and self.posc < self.axisc_max-1):
+			self.posc = self.posc + 1
+			
+		print(self.posc,self.posz)
+		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)
+		self.statusbar.configure(text = self.text)
+		resized = self.resize_image_percent(tensor_img[self.posc,:,:],60)
+		img = ImageTk.PhotoImage(image=Image.fromarray(resized))
+
+		panelImg['image'] = img
+		panelImg.image = img			
+		self.scrollbarc.config(command=self.listboxc.yview(self.posc))			
