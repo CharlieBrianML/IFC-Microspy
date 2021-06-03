@@ -18,12 +18,14 @@ import numpy as np
 import interfaceTools as it
 	
 
-entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata = (None,None,None,None, None)
-entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr = (None,None,None,None,None,None, None)
+entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf = (None,None,None,None,None, None)
+entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr = (None,None,None,None, None)
+entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4 = (None,None,None,None,None,None,None,None)
 
 def deconvolution_parameters():
 	global entryIterations, entryWeight, dropdownImg, dropdownPSF, metadata
 	global entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr
+	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
 
 	if (it.file.split('.')[1]=='oib'):
 		metadata = oib.getMetadata(it.file)
@@ -83,20 +85,30 @@ def deconvolution_parameters():
 
 def deconvolution_event():
 	global entryIterations, entryWeight, dropdownImg, dropdownPSF
-	img_tensor = oibr.get_matrix_oib(it.file)
+	img_tensor = oib.get_matrix_oib(it.file)
 	#dv.deconvolutionMain(img_tensor,multipsf,1,20)
-	dv.deconvolutionMain(img_tensor,multipsf,entryIterations.get(),entryWeight.get())
+	tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,int(entryIterations.get()),int(entryWeight.get()))
+	deconvimg = it.NewWindow('Deconvolution')
+	deconvimg.desplay_image('Deconvolution', tensor_deconv)
 	
 def createpsf_event():
-	metadata['Channel 1 Parameters']['ExcitationWavelength'] = float(entryex_wavelen.get())
-	metadata['Channel 1 Parameters']['EmissionWavelength'] = float(entryem_wavelen.get())
+	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
+	global multipsf
+	metadata['Channel 1 Parameters']['ExcitationWavelength'] = float(entryex_wavelench1.get())
+	metadata['Channel 2 Parameters']['ExcitationWavelength'] = float(entryex_wavelench2.get())
+	metadata['Channel 3 Parameters']['ExcitationWavelength'] = float(entryex_wavelench3.get())
+	metadata['Channel 4 Parameters']['ExcitationWavelength'] = float(entryex_wavelench4.get())
+	metadata['Channel 1 Parameters']['EmissionWavelength'] = float(entryem_wavelench1.get())
+	metadata['Channel 2 Parameters']['EmissionWavelength'] = float(entryem_wavelench2.get())
+	metadata['Channel 3 Parameters']['EmissionWavelength'] = float(entryem_wavelench3.get())
+	metadata['Channel 4 Parameters']['EmissionWavelength'] = float(entryem_wavelench4.get())
 	metadata['num_aperture'] = float(entrynum_aperture.get())
 	metadata['pinhole_radius'] = float(entrypinhole_radius.get())
 	metadata['magnification'] = float(entrymagnification.get())
 	metadata['Axis 3 Parameters Common']['EndPosition'] = float(entrydimz.get())
 	metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
 	
-	cpsf.shape_psf(oib.get_matrix_oib(it.file),metadata)
+	multipsf = cpsf.shape_psf(oib.get_matrix_oib(it.file),metadata)
 
 #Se crea la ventana principal del programa
 it.createWindowMain()
@@ -104,10 +116,10 @@ it.createWindowMain()
 menu = it.createMenu()
 #Se añaden las opciones del menu
 opc1 = it.createOption(menu)
-it.createCommand(opc1, "Abrir", it.openFile)
-it.createCommand(opc1, "Guardar", it.saveFile)
-it.createCommand(opc1, "Salir", it.mainWindow.quit)
-it.createCascade(menu, 'Archivo', opc1)
+it.createCommand(opc1, "Open", it.openFile)
+it.createCommand(opc1, "Save", it.saveFile)
+it.createCommand(opc1, "Exit", it.mainWindow.quit)
+it.createCascade(menu, 'File', opc1)
 
 opc2 = it.createOption(menu)
 it.createCommand(opc2, "Deconvolution", deconvolution_parameters)

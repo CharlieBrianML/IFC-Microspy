@@ -25,7 +25,8 @@ import numpy as np
 message = ''
 
 def deconvolutionTiff(img,psf,iterations,weight):
-	#deconv_list=img
+	deconv_list=np.zeros(img.shape)
+	print(type(weight))
 	
 	if(img.ndim==3):
 		for c in range(img.shape[0]):
@@ -88,7 +89,7 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight):
 		nameFile = '0001.oib'
 		path = os.path.dirname(os.path.realpath(sys.argv[0])) #Direcctorio donde se almacenara el resultado
 		# #path = "C:/Users/"+os.getlogin()+"/Desktop"-
-		savepath = os.path.join(path,'Deconvolution_'+nameFile+'.tif')
+		savepath = os.path.join(path,'deconvolutions/Deconvolution_'+nameFile+'.tif')
 		
 		if(img_tensor.ndim>2):
 			# tiff = tif.readTiff(imgpath)
@@ -105,7 +106,7 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight):
 				if(img_tensor.ndim==2):
 					tiffdeconv = deconvolution1Frame(img_tensor,psf_tensor,i,weight)
 				if(img_tensor.ndim==3):
-					if(tif.istiffRGB(tiff.shape)):
+					if(imf.istiffRGB(img_tensor.shape)):
 						tiffdeconv = deconvolutionRGB(img_tensor,psf_tensor,i,weight)
 					else:
 						tiffdeconv = deconvolutionTiff(img_tensor,psf_tensor,i,weight)
@@ -115,9 +116,13 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight):
 				message = 'Wrong psf dimention, please enter a valid psf'
 				print(message)
 				exit()
-			tifffile.imsave(savepath, tiffdeconv, imagej=True)
+				
+			deconvolution_matrix = np.uint16(tiffdeconv)
+				
+			tifffile.imsave(savepath, deconvolution_matrix, imagej=True)
 			message = 'Deconvolution successful, end of execution'
 			print(message)
+			
 		else:
 			if(extImage=='.jpg' or extImage=='.png' or extImage=='.bmp'):
 				if(extPSF=='.jpg' or extPSF=='.png' or extPSF=='.bmp'):
@@ -160,3 +165,4 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight):
 		message = 'There is no file or directory of the image or psf'
 		print(message)
 	message = ''
+	return deconvolution_matrix

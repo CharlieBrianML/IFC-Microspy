@@ -90,8 +90,11 @@ def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=
 	
 	if psfvol:
 		psf_matrix = normalize_matrix(psf_matrix.volume())
+		psf_matrix = psf_matrix[:realshape[0],:,:]
+		psf_matrix = psf_matrix[:,:realshape[1],:realshape[1]]
 	else: 
-		psf_matrix = normalize_matrix(psf.mirror_symmetry(psf_matrix.data))
+		psf_matrix = normalize_matrix(psf.mirror_symmetry(psf_matrix.data))	
+		psf_matrix = psf_matrix[:realshape[1],:realshape[1]]
 	
 	if plot:
 		import matplotlib.pyplot as plt
@@ -116,17 +119,17 @@ def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=
 		
 		imsave('psf_matrix_vol.tif', psf_matrix,  metadata = {'axes':'TZCYX'}, imagej=True)
 		
-	psf_matrix = psf_matrix[:realshape[0],:,:]
-	psf_matrix = psf_matrix[:,:realshape[1],:realshape[1]]
-		
 	print('PSF shape: ', psf_matrix.shape)
 	return psf_matrix
 	
 def normalize_matrix(matrix):
 	return np.uint8(255*matrix)
 	
-def constructpsf(metadata, channel):
-	shape = (int((metadata['Axis 3 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
+def constructpsf(metadata, channel, psf_vol):
+	if psf_vol:
+		shape = (int((metadata['Axis 3 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
+	else:
+		shape = (int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
 	dims = (metadata['Axis 3 Parameters Common']['EndPosition']/1000,metadata['Axis 0 Parameters Common']['EndPosition'])
 	ex_wavelen = metadata['Channel '+str(channel)+' Parameters']['ExcitationWavelength']
 	em_wavelen = metadata['Channel '+str(channel)+' Parameters']['EmissionWavelength']
@@ -141,17 +144,24 @@ def constructpsf(metadata, channel):
 	print('num_aperture: ',num_aperture)
 	print('pinhole_radius: ',pinhole_radius)
 	print('magnification: ', magnification)	
-	return psf_generator(psfvol=True , shape=shape, dims=dims, ex_wavelen=ex_wavelen, num_aperture=num_aperture, pinhole_radius=pinhole_radius, refr_index=refr_index,
-	magnification=magnification, em_wavelen=em_wavelen, realshape=(int(metadata['Axis 3 Parameters Common']['MaxSize']),int(metadata['Axis 0 Parameters Common']['MaxSize'])))
+	return psf_generator(psfvol=psf_vol , shape=shape, dims=dims, ex_wavelen=ex_wavelen, num_aperture=num_aperture, pinhole_radius=pinhole_radius, refr_index=refr_index,
+	magnification=magnification, em_wavelen=em_wavelen, realshape=(int(metadata['Axis 3 Parameters Common']['MaxSize']),int(metadata['Axis 0 Parameters Common']['MaxSize'])))	
 
 def shape_psf(tensor, metadata):
 	dimtensor = tensor.ndim
 
-	if (dimtensor>2):
+	if (dimtensor==4):
 		multipsf = np.zeros((tensor.shape[0],tensor.shape[1],tensor.shape[2],tensor.shape[3]))
 		for i in range(tensor.shape[0]):
 			print('\nGenerating psf channel: ',i)
-			multipsf[i,:,:,:] = constructpsf(metadata, i+1)		
+			multipsf[i,:,:,:] = constructpsf(metadata, i+1, True)		
 		# from tifffile import imsave
 		# imsave('psf_vol.tif', np.uint8(multipsf),  metadata = {'axes':'TZCYX'}, imagej=True)
 		#dv.deconvolutionMain(tensor,multipsf,2,20)
+	if (dimtensor==3):
+		multipsf = np.zeros((tensor.shape[0],tensor.shape[1],tensor.shape[2]))
+		for i in range(tensor.shape[0]):
+			print('\nGenerating psf channel: ',i)
+			multipsf[i,:,:] = constructpsf(metadata, i+1, False)	
+			
+	return multipsf
