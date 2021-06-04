@@ -13,6 +13,7 @@
 from tkinter import *    # Carga módulo tk (widgets estándar)
 from tkinter import filedialog as fd
 from tkinter import ttk  # Carga ttk (para widgets nuevos 8.5+)
+from tkinter import messagebox
 from PIL import ImageTk, Image
 
 import cv2 
@@ -21,7 +22,10 @@ import oibread as oib
 
 # Define la ventana principal de la aplicación
 mainWindow = Tk() 
-#img = ''
+psftypes = ['psf.ISOTROPIC | psf.EXCITATION','psf.ISOTROPIC | psf.EMISSION','psf.ISOTROPIC | psf.WIDEFIELD','psf.ISOTROPIC | psf.CONFOCAL',
+'psf.ISOTROPIC | psf.TWOPHOTON','psf.GAUSSIAN | psf.EXCITATION','psf.GAUSSIAN | psf.EMISSION','psf.GAUSSIAN | psf.WIDEFIELD','psf.GAUSSIAN | psf.CONFOCAL',
+'psf.GAUSSIAN | psf.TWOPHOTON','psf.GAUSSIAN | psf.EXCITATION | psf.PARAXIAL','psf.GAUSSIAN | psf.EMISSION | psf.PARAXIAL','psf.GAUSSIAN | psf.WIDEFIELD | psf.PARAXIAL',
+'psf.GAUSSIAN | psf.CONFOCAL | psf.PARAXIAL','psf.GAUSSIAN | psf.TWOPHOTON | psf.PARAXIAL']
 file = ''
 filesName = []
 filesPath = []
@@ -136,6 +140,9 @@ class NewWindow:
 		self.window.destroy()
 		if (self.nameWindow in filesName):
 			filesName.remove(self.nameWindow)
+			
+	def destroy(self):
+		self.window.destroy()
 		
 	def placeImage(self,file):
 		#global img
@@ -182,11 +189,11 @@ class NewWindow:
 		
 	def createCombobox(self,x,y):
 		global files
-		#dropdown = ttk.Combobox(self.window, state="readonly",values = ["Python", "C", "C++", "Java"])
-		dropdown = ttk.Combobox(self.window, state="readonly",values = filesName)
+		dropdown = ttk.Combobox(self.window, state="readonly",values = psftypes, width=40)
 		dropdown.place(x=x, y=y)
 		if (len(filesName)>0):
 			dropdown.current(0)
+		dropdown.current(8)
 		return dropdown
 		
 	def scrollbarz(self, maxpos):

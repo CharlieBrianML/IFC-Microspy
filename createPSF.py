@@ -36,49 +36,48 @@ def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=
 	args.update(kwargs)
 
 	if (psftype == 0):
-		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.CONFOCAL, **args)	
-		print('psf.GAUSSIAN | psf.CONFOCAL generated')	
-	if (psftype == 1):
 		psf_matrix = psf.PSF(psf.ISOTROPIC | psf.EXCITATION, **args)
 		print('psf.ISOTROPIC | psf.EXCITATION generated')
-	if (psftype == 2):
+	if (psftype == 1):
 		psf_matrix = psf.PSF(psf.ISOTROPIC | psf.EMISSION, **args)
 		print('psf.ISOTROPIC | psf.EMISSION generated')
-	if (psftype == 3):
+	if (psftype == 2):
 		psf_matrix = psf.PSF(psf.ISOTROPIC | psf.WIDEFIELD, **args)
 		print('psf.ISOTROPIC | psf.WIDEFIELD generated')
-	if (psftype == 4):
+	if (psftype == 3):
 		psf_matrix = psf.PSF(psf.ISOTROPIC | psf.CONFOCAL, **args)
 		print('psf.ISOTROPIC | psf.CONFOCAL generated')
-	if (psftype == 5):
+	if (psftype == 4):
 		psf_matrix = psf.PSF(psf.ISOTROPIC | psf.TWOPHOTON, **args)
 		print('psf.ISOTROPIC | psf.TWOPHOTON generated')
-	if (psftype == 6):
+	if (psftype == 5):
 		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.EXCITATION, **args)
 		print('psf.GAUSSIAN | psf.EXCITATION generated')
-	if (psftype == 7):
+	if (psftype == 6):
 		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.EMISSION, **args)
 		print('psf.GAUSSIAN | psf.EMISSION generated')
-	if (psftype == 8):
+	if (psftype == 7):
 		print('psf.GAUSSIAN | psf.WIDEFIELD generated')
-	if (psftype == 9):
+		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.WIDEFIELD, **args)
+	if (psftype == 8):
 		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.CONFOCAL, **args)
 		print('psf.GAUSSIAN | psf.CONFOCAL generated')
-	if (psftype == 10):
+	if (psftype == 9):
 		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.TWOPHOTON, **args)
 		print('psf.GAUSSIAN | psf.TWOPHOTON generated')
-	if (psftype == 11):
+	if (psftype == 10):
 		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.EXCITATION | psf.PARAXIAL, **args)
 		print('psf.GAUSSIAN | psf.EXCITATION | psf.PARAXIAL generated')
-	if (psftype == 12):
+	if (psftype == 11):
 		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.EMISSION | psf.PARAXIAL, **args)
 		print('psf.GAUSSIAN | psf.EMISSION | psf.PARAXIAL generated')
-	if (psftype == 13):
+	if (psftype == 12):
 		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.WIDEFIELD | psf.PARAXIAL, **args)
 		print('psf.GAUSSIAN | psf.WIDEFIELD | psf.PARAXIAL generated')
-	if (psftype == 14):
+	if (psftype == 13):
 		print('psf.GAUSSIAN | psf.CONFOCAL | psf.PARAXIAL generated')
-	if (psftype == 15):
+		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.CONFOCAL | psf.PARAXIAL, **args)
+	if (psftype == 14):
 		psf_matrix = psf.PSF(psf.GAUSSIAN | psf.TWOPHOTON | psf.PARAXIAL, **args)
 		print('psf.GAUSSIAN | psf.TWOPHOTON | psf.PARAXIAL generated')
 	
@@ -125,12 +124,13 @@ def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=
 def normalize_matrix(matrix):
 	return np.uint8(255*matrix)
 	
-def constructpsf(metadata, channel, psf_vol):
+def constructpsf(metadata, channel, psf_vol, psftype):
 	if psf_vol:
 		shape = (int((metadata['Axis 3 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
+		dims = (metadata['Axis 3 Parameters Common']['EndPosition']/1000,metadata['Axis 0 Parameters Common']['EndPosition'])
 	else:
 		shape = (int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
-	dims = (metadata['Axis 3 Parameters Common']['EndPosition']/1000,metadata['Axis 0 Parameters Common']['EndPosition'])
+		dims = (metadata['Axis 0 Parameters Common']['EndPosition'],metadata['Axis 0 Parameters Common']['EndPosition'])
 	ex_wavelen = metadata['Channel '+str(channel)+' Parameters']['ExcitationWavelength']
 	em_wavelen = metadata['Channel '+str(channel)+' Parameters']['EmissionWavelength']
 	num_aperture = metadata['num_aperture']
@@ -144,24 +144,28 @@ def constructpsf(metadata, channel, psf_vol):
 	print('num_aperture: ',num_aperture)
 	print('pinhole_radius: ',pinhole_radius)
 	print('magnification: ', magnification)	
-	return psf_generator(psfvol=psf_vol , shape=shape, dims=dims, ex_wavelen=ex_wavelen, num_aperture=num_aperture, pinhole_radius=pinhole_radius, refr_index=refr_index,
+	return psf_generator(savetif=False,psfvol=psf_vol, psftype=psftype, shape=shape, dims=dims, ex_wavelen=ex_wavelen, num_aperture=num_aperture, pinhole_radius=pinhole_radius, refr_index=refr_index,
 	magnification=magnification, em_wavelen=em_wavelen, realshape=(int(metadata['Axis 3 Parameters Common']['MaxSize']),int(metadata['Axis 0 Parameters Common']['MaxSize'])))	
 
-def shape_psf(tensor, metadata):
+def shape_psf(tensor, metadata, psftype):
 	dimtensor = tensor.ndim
+	print(psftype)
 
 	if (dimtensor==4):
 		multipsf = np.zeros((tensor.shape[0],tensor.shape[1],tensor.shape[2],tensor.shape[3]))
 		for i in range(tensor.shape[0]):
 			print('\nGenerating psf channel: ',i)
-			multipsf[i,:,:,:] = constructpsf(metadata, i+1, True)		
+			multipsf[i,:,:,:] = constructpsf(metadata, i+1, True, psftype)		
 		# from tifffile import imsave
 		# imsave('psf_vol.tif', np.uint8(multipsf),  metadata = {'axes':'TZCYX'}, imagej=True)
 		#dv.deconvolutionMain(tensor,multipsf,2,20)
 	if (dimtensor==3):
-		multipsf = np.zeros((tensor.shape[0],tensor.shape[1],tensor.shape[2]))
+		multipsf = np.zeros(tensor.shape)
 		for i in range(tensor.shape[0]):
 			print('\nGenerating psf channel: ',i)
-			multipsf[i,:,:] = constructpsf(metadata, i+1, False)	
+			multipsf[i,:,:] = constructpsf(metadata, i+1, False, psftype)	
+	from tifffile import imsave
+		
+	imsave('psf_matrix.tif', np.uint8(multipsf), metadata = {'axes':'TZCYX'}, imagej=True)
 			
 	return multipsf
