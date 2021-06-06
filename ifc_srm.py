@@ -49,7 +49,7 @@ def deconvolution_parameters():
 	opcPsf.createLabel('Magnification:',20,400)
 	opcPsf.createLabel('Refr_index:',20,430)
 	opcPsf.createLabel('Dim_z:                                       [um]',20,460)
-	opcPsf.createLabel('Dim_r:                                       [um]',20,490)
+	opcPsf.createLabel('Dim_xy:                                       [um]',20,490)
 	
 	entryex_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,100)
 	entryex_wavelench2 = opcPsf.createEntry(metadata['Channel 2 Parameters']['ExcitationWavelength'],160,130)
@@ -73,18 +73,18 @@ def deconvolution_parameters():
 	opcPsf.createButton('Generate psf', createpsf_event, 'bottom')
 
 def deconvolution_event():
-	global entryIterations, entryWeight, dropdownImg
+	global entryIterations, entryWeight, dropdownImg, metadata
 	img_tensor = oib.get_matrix_oib(it.file)
 	try:
-		tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,int(entryIterations.get()),int(entryWeight.get()))
-		deconvimg = it.NewWindow('Deconvolution')
-		deconvimg.desplay_image('Deconvolution', tensor_deconv)
+		tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,int(entryIterations.get()),int(entryWeight.get()), it.file.split('/')[len(it.file.split('/'))-1], metadata)
+		deconvimg = it.NewWindow('Deconvolution'+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get())
+		deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
 	except AttributeError:
 		messagebox.showinfo(message='There are empty parameters, please check')
 	
 def createpsf_event():
 	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
-	global multipsf, opcPsf, entryIterations, entryWeight, dropdownPSF
+	global multipsf, opcPsf, entryIterations, entryWeight, dropdownPSF, metadata
 	metadata['Channel 1 Parameters']['ExcitationWavelength'] = float(entryex_wavelench1.get())
 	metadata['Channel 2 Parameters']['ExcitationWavelength'] = float(entryex_wavelench2.get())
 	metadata['Channel 3 Parameters']['ExcitationWavelength'] = float(entryex_wavelench3.get())
@@ -115,7 +115,7 @@ def createpsf_event():
 	
 	entryIterations = opcDeconv.createEntry('',110,80,25)
 	entryWeight = opcDeconv.createEntry('',110,110,25)
-	opcDeconv.createButtonXY('Deconvolution', deconvolution_event, 100, 140)
+	opcDeconv.createButtonXY('Deconvolution '+entryIterations.get()+' '+entryWeight.get(), deconvolution_event, 100, 140)
 
 #Se crea la ventana principal del programa
 it.createWindowMain()

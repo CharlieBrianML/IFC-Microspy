@@ -193,7 +193,7 @@ class NewWindow:
 		dropdown.place(x=x, y=y)
 		if (len(filesName)>0):
 			dropdown.current(0)
-		dropdown.current(8)
+		dropdown.current(13)
 		return dropdown
 		
 	def scrollbarz(self, maxpos):
@@ -239,16 +239,11 @@ class NewWindow:
 		dim = (width, height)	
 		
 		# resize image
-		print(type(img[0,0]))
 		resized = cv2.resize(img, dim, interpolation = cv2.INTER_LINEAR)
-		print(resized.max())
 		
 		return imf.normalizar(resized)
-		#return resized
 		
 	def scrollImagez(self, *args):
-		#global panelImg
-		print(args)
 
 		if (int(args[1]) == -1 and self.posz > 0):
 			self.posz = self.posz - 1
@@ -266,8 +261,6 @@ class NewWindow:
 		self.scrollbarz.config(command=self.listboxz.yview(self.posz))	
 		
 	def scrollImagec(self, *args):
-		#global panelImg
-		print(args)
 
 		if (int(args[1]) == -1 and self.posc > 0):
 			self.posc = self.posc - 1
@@ -285,8 +278,6 @@ class NewWindow:
 		self.scrollbarc.config(command=self.listboxc.yview(self.posc))	
 		
 	def scrollImagecs(self, *args):
-		#global panelImg
-		print(args)
 
 		if (int(args[1]) == -1 and self.posc > 0):
 			self.posc = self.posc - 1

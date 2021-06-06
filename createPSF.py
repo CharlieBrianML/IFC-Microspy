@@ -92,7 +92,8 @@ def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=
 		psf_matrix = psf_matrix[:realshape[0],:,:]
 		psf_matrix = psf_matrix[:,:realshape[1],:realshape[1]]
 	else: 
-		psf_matrix = normalize_matrix(psf.mirror_symmetry(psf_matrix.data))	
+		#psf_matrix = normalize_matrix(psf.mirror_symmetry(psf_matrix.data))
+		psf_matrix = psf.mirror_symmetry(psf_matrix.data)
 		psf_matrix = psf_matrix[:realshape[1],:realshape[1]]
 	
 	if plot:
@@ -161,11 +162,12 @@ def shape_psf(tensor, metadata, psftype):
 		#dv.deconvolutionMain(tensor,multipsf,2,20)
 	if (dimtensor==3):
 		multipsf = np.zeros(tensor.shape)
+		metadata['Axis 3 Parameters Common']['MaxSize']=0.0
 		for i in range(tensor.shape[0]):
 			print('\nGenerating psf channel: ',i)
 			multipsf[i,:,:] = constructpsf(metadata, i+1, False, psftype)	
+			
 	from tifffile import imsave
-		
 	imsave('psf_matrix.tif', np.uint8(multipsf), metadata = {'axes':'TZCYX'}, imagej=True)
 			
 	return multipsf
