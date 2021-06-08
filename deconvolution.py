@@ -37,6 +37,7 @@ def deconvolutionTiff(img,psf,iterations,weight):
 				
 			#deconv = deconvolveTF(img_denoised,psf[c,:,:],iterations) #Funcion de deconvolucion de imagenes
 			deconv = deconvolveTF(img[c,:,:],psf[c,:,:],iterations) #Funcion de deconvolucion de imagenes
+			print('deconv: ',deconv[0,0])
 			
 			if(weight!=0):
 				img_denoised = imf.denoisingTV(deconv, weight)
@@ -58,22 +59,25 @@ def deconvolutionTiff(img,psf,iterations,weight):
 			for c in range(img.shape[0]):
 				bar = Bar("\nChannel "+str(c+1)+' :', max=img.shape[1])
 				for z in range(img.shape[1]):
-				
+					img_denoised = img[c,z,:,:]
 					# if(weight!=0):
 						# img_denoised = imf.denoisingTV(img[c,z,:,:], weight)
 					# else:
 						# img_denoised = img[c,z,:,:]
+					# print('img: ',img[0,0,0,0])
+					# print('psf: ',psf[0,0,0,0])
 						
-					#deconv= deconvolveTF(img_denoised,psf[c,z,:,:], iterations) #Funcion de deconvolucion de imagenes
+					#deconv = deconvolveTF(img_denoised,psf[c,z,:,:], iterations) #Funcion de deconvolucion de imagenes
 					deconv= deconvolveTF(img[c,z,:,:],psf[c,z,:,:], iterations) #Funcion de deconvolucion de imagenes
-					
+					print('deconv: ',deconv[0,0])
 					if(weight!=0):
 						img_denoised = imf.denoisingTV(deconv, weight)
 					else:
 						img_denoised = deconv			
-					
+
 					deconvN = imf.normalizar(img_denoised) #Se normaliza la matriz 
 					#deconvN = imf.normalizar(deconv) #Se normaliza la matriz 
+
 					deconv_list[c,z,:,:]=deconvN
 					bar.next()
 				bar.finish()
