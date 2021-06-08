@@ -65,7 +65,7 @@ def deconvolution_parameters():
 	entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,370)
 	entrymagnification = opcPsf.createEntry(metadata['magnification'],160,400)
 	entrymagnification = opcPsf.createEntry(metadata['refr_index'],160,430)
-	entrydimz = opcPsf.createEntry(metadata['Axis 3 Parameters Common']['EndPosition']/1000,160,460)
+	entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,460)
 	entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,490)
 	
 	opcPsf.createLabel('PSF type: ',20,10)
