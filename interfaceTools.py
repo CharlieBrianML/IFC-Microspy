@@ -19,6 +19,7 @@ from PIL import ImageTk, Image
 import cv2 
 import os
 import oibread as oib
+import tiff as tif
 
 # Define la ventana principal de la aplicación
 mainWindow = Tk() 
@@ -35,32 +36,42 @@ panelImg = None
 
 def openFile():
 	global file, tensor_img, panelImg
-	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Seleccione archivo', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif')))
+	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Seleccione archivo', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp')))
 	if(len(file)>0):
 		filesPath.append(file)
 		nameFile = file.split('/')[len(file.split('/'))-1]
 		if(os.path.splitext(nameFile)[1]=='.tif'):
-			print('Archivo .tif')
-			venImg = NewWindow(nameFile)
-			scrollbar = Scrollbar(venImg.window, orient=HORIZONTAL, takefocus=10)
-			scrollbar.pack(side="top", fill="x")
-			scrollbar.config(command=scrollImage)
-			venImg.placeImage(file)
-		elif(os.path.splitext(nameFile)[1]=='.oib'):	
-			print('Archivo .oib')
+			print('Archivo: ', nameFile)
+			tensor_img = tif.readTiff(file)
+			
+			if(tensor_img.ndim==4):
+				import numpy as np
+				tensor_img_mod=np.zeros((tensor_img.shape[3],tensor_img.shape[0],tensor_img.shape[1],tensor_img.shape[2]))
+				for c in range(tensor_img.shape[3]):
+					for z in range(tensor_img.shape[0]):
+						tensor_img_mod[c,z,:,:] = tensor_img[z,:,:,c]
+				print(tensor_img.shape)
+				
+				venImg = NewWindow(nameFile)
+				tensor_img = venImg.desplay_image(nameFile, tensor_img_mod)		
+			else:
+				venImg = NewWindow(nameFile)
+				venImg.placeImage(tensor_img)
+				
+		elif(os.path.splitext(nameFile)[1]=='.oib'):
+			print('Archivo: ', nameFile)
 			tensor_img = oib.get_matrix_oib(file)
 			print(tensor_img.shape)
-			#from tkinter import messagebox
-			#messagebox.showinfo(message='file '+ file +' has been opened', title="File")
-			print(nameFile)
 			
 			venImg = NewWindow(nameFile)
 			tensor_img = venImg.desplay_image(nameFile, tensor_img)
 			
 		else:
+			import cv2
+			matrix_img = cv2.imread(file)
 			venImg = NewWindow(nameFile)
 			#newVen = venImg.createNewWindow(file.split('/')[len(file.split('/'))-1])
-			venImg.placeImage(file)
+			venImg.placeImage(matrix_img)
 	#venImg = createNewWindow(file)
 	#placeImage(venImg, file)
 	
@@ -114,7 +125,7 @@ def createStringVar():
 	
 def createStatusBar():
 	global statusbar
-	statusbar = Label(mainWindow, text='IFC SuperResolution v0.0.10', bd=1, relief=SUNKEN, anchor=W)
+	statusbar = Label(mainWindow, text='IFC SuperResolution v0.0.11', bd=1, relief=SUNKEN, anchor=W)
 	statusbar.pack(side=BOTTOM, fill=X)
 	return statusbar
 	
@@ -144,12 +155,12 @@ class NewWindow:
 	def destroy(self):
 		self.window.destroy()
 		
-	def placeImage(self,file):
+	def placeImage(self,img):
 		#global img
-		filesName.append(file.split('/')[len(file.split('/'))-1])
-		#from PIL import ImageTk, Image
-		#fileImage=Image.open(file)
-		self.img = ImageTk.PhotoImage(Image.open(file))
+		#filesName.append(file.split('/')[len(file.split('/'))-1])
+
+		resized = self.resize_image_percent(img, 60)
+		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
 		#self.img = PhotoImage(Image.open(file))
 		self.panel = Label(self.window, image = self.img)
 		self.panel.image = self.img

@@ -131,7 +131,7 @@ def constructpsf(metadata, channel, psf_vol, psftype):
 		#dims = ((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,metadata['Axis 0 Parameters Common']['EndPosition'])
 		#prueba = metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition']
 		#print('prueba: ',prueba/1000)
-		dims = ((metadata['Axis 3 Parameters Common']['EndPosition'])/shape[0],metadata['Axis 0 Parameters Common']['EndPosition'])
+		dims = ((metadata['Axis 3 Parameters Common']['EndPosition'])/shape[0],metadata['Axis 0 Parameters Common']['EndPosition']/shape[1])
 		#dims = (9.24,metadata['Axis 0 Parameters Common']['EndPosition'])
 	else:
 		shape = (int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
@@ -169,7 +169,7 @@ def shape_psf(tensor, metadata, psftype):
 		metadata['Axis 3 Parameters Common']['MaxSize']=0.0
 		for i in range(tensor.shape[0]):
 			print('\nGenerating psf channel: ',i)
-			multipsf[i,:,:] = constructpsf(metadata, i+1, False, psftype)	
+			multipsf[i,:,:] = constructpsf(metadata, i+1, False, psftype)
 			
 	from tifffile import imsave
 	imsave('psf_matrix.tif', np.uint8(multipsf), metadata = {'axes':'TZCYX'}, imagej=True)

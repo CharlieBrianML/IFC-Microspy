@@ -25,10 +25,11 @@ import numpy as np
 message = ''
 
 def deconvolutionTiff(img,psf,iterations,weight):
-	deconv_list=np.zeros(img.shape)
+	#deconv_list=np.zeros(img.shape)
 	
 	if(img.ndim==3):
 		for c in range(img.shape[0]):
+			deconv_list=np.zeros(img.shape)
 		
 			# if(weight!=0):
 				# img_denoised = imf.denoisingTV(img[c,:,:], weight)
@@ -55,7 +56,7 @@ def deconvolutionTiff(img,psf,iterations,weight):
 				print('Channel ',c+1,' deconvolved')
 				deconv_list[c,:,:,:]=deconv
 		else:
-			deconv_list=np.zeros((img.shape[0],img.shape[1],img.shape[2],img.shape[3]), dtype="int16")
+			deconv_list=np.zeros((img.shape[1],img.shape[0],img.shape[2],img.shape[3]), dtype="int16")
 			for c in range(img.shape[0]):
 				bar = Bar("\nChannel "+str(c+1)+' :', max=img.shape[1])
 				for z in range(img.shape[1]):
@@ -78,7 +79,7 @@ def deconvolutionTiff(img,psf,iterations,weight):
 					deconvN = imf.normalizar(img_denoised) #Se normaliza la matriz 
 					#deconvN = imf.normalizar(deconv) #Se normaliza la matriz 
 
-					deconv_list[c,z,:,:]=deconvN
+					deconv_list[z,c,:,:]=deconvN
 					bar.next()
 				bar.finish()
 	if(img.ndim==5):
@@ -141,10 +142,14 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 		deconvolution_matrix = np.uint16(tiffdeconv)
 			
 		tifffile.imsave(savepath, deconvolution_matrix, imagej=True)
+		tifffile.imsave(savepath, np.uint16(imf.normalizar(img_tensor)), imagej=True)
 		message = 'Deconvolution successful, end of execution'
 		print(message)
 		
 	else:
+		if(extImage=='.tif'):
+			print('Ey estoy aqui')
+			deconv=deconvolution1Frame(img,psf,i)
 		if(extImage=='.jpg' or extImage=='.png' or extImage=='.bmp'):
 			if(extPSF=='.jpg' or extPSF=='.png' or extPSF=='.bmp'):
 				img = imf.imgReadCv2(imgpath) #Leemos la imagen a procesar 

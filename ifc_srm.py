@@ -23,13 +23,19 @@ entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDec
 entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr = (None,None,None,None, None)
 entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4 = (None,None,None,None,None,None,None,None)
 
-def deconvolution_parameters():
+def psf_parameters():
 	global dropdownImg, dropdownPSF, metadata, opcPsf
 	global entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr
 	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
 
 	if (it.file.split('.')[1]=='oib'):
 		metadata = oib.getMetadata(it.file)
+	elif (it.file.split('.')[1]=='tif'):
+		metadata = oib.getMetadata(it.file)
+	else:
+		metadata = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
+		'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
+		'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0}}
 		
 	opcPsf = it.NewWindow(it.file.split('/')[len(it.file.split('/'))-1],'300x550') #Objeto de la clase NewWindow
 	
@@ -76,7 +82,7 @@ def deconvolution_event():
 	global entryIterations, entryWeight, dropdownImg, metadata
 	img_tensor = oib.get_matrix_oib(it.file)
 	try:
-		tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,int(entryIterations.get()),int(entryWeight.get()), it.file.split('/')[len(it.file.split('/'))-1], metadata)
+		tensor_deconv = dv.deconvolutionMain(img_tensor[2,20,:,:],multipsf[2,20,:,:],int(entryIterations.get()),int(entryWeight.get()), it.file.split('/')[len(it.file.split('/'))-1], metadata)
 		deconvimg = it.NewWindow('Deconvolution'+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get())
 		deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
 	except AttributeError:
@@ -129,7 +135,7 @@ it.createCommand(opc1, "Exit", it.mainWindow.quit)
 it.createCascade(menu, 'File', opc1)
 
 opc2 = it.createOption(menu)
-it.createCommand(opc2, "Deconvolution", deconvolution_parameters)
+it.createCommand(opc2, "Deconvolution", psf_parameters)
 #it.createCommand(opc2, "Guardar", it.saveFile)
 #it.createCommand(opc2, "Salir", mainWindow.quit)
 it.createCascade(menu, 'Image', opc2)
