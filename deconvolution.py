@@ -78,7 +78,7 @@ def deconvolutionTiff(img,psf,iterations,weight):
 
 					deconvN = imf.normalizar(img_denoised) #Se normaliza la matriz 
 					#deconvN = imf.normalizar(deconv) #Se normaliza la matriz 
-
+					
 					deconv_list[z,c,:,:]=deconvN
 					bar.next()
 				bar.finish()
@@ -108,7 +108,6 @@ def deconvolution1Frame(img,psf,iterations):
 def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	global message
 	to=time()
-	
 	# psf_tensor_aux = tif.readTiff('oib_files/psf_0005.tif')
 	#psf_tensor_aux = tif.readTiff('oib_files/psf_0016.tif')
 	# for i in range(psf_tensor.shape[0]):
@@ -118,6 +117,7 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 
 	path = os.path.dirname(os.path.realpath(sys.argv[0])) #Direcctorio donde se almacenara el resultado
 	savepath = os.path.join(path,'deconvolutions/Deconvolution_'+nameFile.split('.')[0]+' i-'+str(i)+' w-'+str(weight)+'.tif')
+	tifffile.imsave(path + '/deconvolutions/'+nameFile.split('.')[0]+'_normalized.tif', np.uint16(img_tensor*(65535/img_tensor.max())), imagej=True)
 	
 	if(img_tensor.ndim>2):
 		print(img_tensor.shape)
@@ -142,7 +142,7 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 		deconvolution_matrix = np.uint16(tiffdeconv)
 			
 		tifffile.imsave(savepath, deconvolution_matrix, imagej=True)
-		tifffile.imsave(savepath, np.uint16(imf.normalizar(img_tensor)), imagej=True)
+		#tifffile.imsave(savepath, np.uint16(imf.normalizar(img_tensor)), imagej=True)
 		message = 'Deconvolution successful, end of execution'
 		print(message)
 		
