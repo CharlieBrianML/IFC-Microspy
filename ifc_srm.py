@@ -20,7 +20,7 @@ import interfaceTools as it
 	
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv = (None,None,None,None,None,None, None)
-entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv = (None,None,None,None,None,None)
+entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor = (None,None,None,None,None,None,None)
 entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4, entryrefr_index = (None,None,None,None,None,None,None,None,None)
 
 def psf_parameters():
@@ -84,7 +84,7 @@ def psf_parameters():
 	opcPsf.createButton('Generate psf', createpsf_event, 'bottom')
 
 def deconvolution_event():
-	global entryIterations, entryWeight, dropdownImg, metadata, tensor_deconv
+	global entryIterations, entryWeight, dropdownImg, metadata, tensor_deconv, img_tensor
 	img_tensor = oib.get_matrix_oib(it.file)
 	try:
 		tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,int(entryIterations.get()),int(entryWeight.get()), it.file.split('/')[len(it.file.split('/'))-1], metadata)
@@ -132,6 +132,7 @@ def createpsf_event():
 def neural_network_event():
 	import pix2pix as p2p
 	global tensor_deconv
+	p2p.nnpix2pix(100, tensor_deconv, img_tensor)
 	
 	
 #Se crea la ventana principal del programa
