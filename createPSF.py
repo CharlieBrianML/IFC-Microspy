@@ -129,9 +129,7 @@ def normalize_matrix(matrix):
 def constructpsf(metadata, channel, psf_vol, psftype):
 	if psf_vol:
 		shape = (int((metadata['Axis 3 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
-		#dims = (metadata['Axis 3 Parameters Common']['EndPosition']/2,metadata['Axis 0 Parameters Common']['EndPosition']/2)
-		dims = (metadata['Axis 3 Parameters Common']['EndPosition'],metadata['Axis 0 Parameters Common']['EndPosition'])
-		print('vol = True')
+		dims = (metadata['Axis 3 Parameters Common']['EndPosition']/1000,metadata['Axis 0 Parameters Common']['EndPosition'])
 	else:
 		shape = (int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
 		dims = (metadata['Axis 0 Parameters Common']['EndPosition']/2,metadata['Axis 0 Parameters Common']['EndPosition']/2)

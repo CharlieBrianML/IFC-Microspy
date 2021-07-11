@@ -130,9 +130,9 @@ def createpsf_event():
 	opcDeconv.createButtonXY('Deconvolution '+entryIterations.get()+' '+entryWeight.get(), deconvolution_event, 100, 140)
 	
 def neural_network_event():
-	import pix2pix as p2p
+	from pix2pix import nn
 	global tensor_deconv
-	p2p.nnpix2pix(100, tensor_deconv, img_tensor)
+	nn(100, tensor_deconv, img_tensor)
 	
 	
 #Se crea la ventana principal del programa
