@@ -19,6 +19,10 @@ from IPython.display import clear_output
 from tensorflow.keras.layers import *
 from tensorflow.keras import *
 
+INPATH, OUTPATH = (None, None)
+IMG_WIDTH = 285
+IMG_HEIGHT = 285
+
 #Reescalar imagenes
 def resize(inimg, tgimg, width, height):
 	inimg = tf.image.resize(inimg, [width, height])
@@ -48,10 +52,18 @@ def random_jitter(inimg,tgimg):
 	return inimg, tgimg
 
 def load_image(filename, argument = True):
-	inimg = tf.cast(tf.image.decode_jpeg(tf.io.read_file(INPATH+'/'+filename)), tf.float32)[..., :3]
-	tgimg = tf.cast(tf.image.decode_jpeg(tf.io.read_file(OUTPATH+'/'+filename)), tf.float32)[..., :3]
+	inimg = tf.cast(tf.image.decode_jpeg(tf.io.read_file(INPATH+'/'+filename)), tf.float32)
+	#inimg = tf.cast(tf.image.decode_jpeg(tf.io.read_file(INPATH+'/'+filename)), tf.float32)[..., :3]
+	#tgimg = tf.cast(tf.image.decode_jpeg(tf.io.read_file(OUTPATH+'/'+filename)), tf.float32)[..., :3]
+	tgimg = tf.cast(tf.image.decode_jpeg(tf.io.read_file(OUTPATH+'/'+filename)), tf.float32)
+	#inimg = tf.cast(tf.io.read_file(INPATH+'/'+filename), tf.float32)
+	#tgimg = tf.cast(tf.io.read_file(OUTPATH+'/'+filename), tf.float32)
+	print('Dim:',inimg.shape)
+	print('Dim:',tgimg.shape)
+	print('La dri es: ',INPATH+'/')
 
 	inimg,tgimg = resize(inimg,tgimg,IMG_WIDTH,IMG_HEIGHT)
+	#inimg,tgimg = (np.resize(inimg,(IMG_WIDTH,IMG_HEIGHT)),np.resize(tgimg,(IMG_WIDTH,IMG_HEIGHT)))
 
 	if argument:
 		inimg, tgimg = random_jitter(inimg, tgimg)
@@ -211,6 +223,8 @@ def train_step(input_image, target):
 def train(dataset, epochs):
 	for epoch in range(epochs):
 		imgi = 0
+		print('\ntype: ',type(dataset))
+		#print('shape: ',dataset.shape)
 		for input_image, target in dataset:
 			print('epoch'+str(epoch)+'- train: '+str(imgi)+'/'+str(len(tr_urls)))
 			imgi+=1
@@ -231,28 +245,35 @@ def load_test_image(filename):
 	return load_image(filename, False)
 
 def nn(num_epochs, dev_img, img_tensor):
-	os.mkdir('training_deconv')
-	os.mkdir('training_set')
-	
-	for c in range(dev_img.shape[0]):
-		for z in range(dev_img.shape[1]):
-			cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.bmp',dev_img[c,z,:,:])
-			
-	for c in range(img_tensor.shape[0]):
-		for z in range(img_tensor.shape[1]):
-			cv2.imwrite('training_deconv/'+str(c+1)+'_'+str(z+1)+'.bmp',img_tensor[c,z,:,:])			
+	global INPATH, OUTPATH
+
+	if not(os.path.isdir('training_deconv')) and not(os.path.isdir('training_set')):
+		os.mkdir('training_deconv')
+		os.mkdir('training_set')
+		print(dev_img.shape)
+		print(img_tensor.shape)
+		
+		for c in range(dev_img.shape[1]):
+			for z in range(dev_img.shape[0]):
+				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.png',dev_img[z,c,:,:])
+				
+		for c in range(img_tensor.shape[0]):
+			for z in range(img_tensor.shape[1]):
+				cv2.imwrite('training_deconv/'+str(c+1)+'_'+str(z+1)+'.png',img_tensor[c,z,:,:])			
 
 	#Ruta raiz
-	PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
+	PATH = os.path.dirname(os.path.realpath('ifc_srm.py'))
+	print(PATH)
 
-	CHECKPATH = PATH + 'checkpoints'
-	INPATH = PATH + 'training_deconv' #Fake image
-	OUTPATH = PATH + 'training_set' #Real image
+	CHECKPATH = PATH + '/checkpoints'
+	INPATH = PATH + '/training_deconv' #Fake image
+	OUTPATH = PATH + '/training_set' #Real image
+	print(INPATH)
 
 	#imgurls = !ls -1 "{INPATH}"
-	imgurls = os.listdir("INPATH")
+	imgurls = os.listdir(INPATH)
 
-	n = 7
+	n = 10
 	train_n = round(n*0.80)
 
 	#Listado random
@@ -267,25 +288,30 @@ def nn(num_epochs, dev_img, img_tensor):
 
 	print(len(imgurls),len(tr_urls),len(ts_urls))
 
-	IMG_WIDTH = 256
-	IMG_HEIGHT = 256
 
-	plt.imshow(((load_train_image(randurls[0])[1])+1)/2)
+	#plt.imshow(((load_train_image(randurls[0])[1])+1)/2)
 	train_dataset = tf.data.Dataset.from_tensor_slices(tr_urls)
+	for inimg, tgimg in train_dataset.take(5):
+		print('ESto funciona')
 	train_dataset = train_dataset.map(load_train_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-	train_dataset = train_dataset.batch(1)
+	#train_dataset = train_dataset.batch(1)
+	print(train_dataset.take(5))
+	print('type: ', type(train_dataset.take(5)))
+	#for inimg, tgimg in train_dataset.take(5):
+		#print('ESto funciona')
 
 	test_dataset = tf.data.Dataset.from_tensor_slices(tr_urls)
 	test_dataset = test_dataset.map(load_test_image, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 	test_dataset = test_dataset.batch(1)
+	print(test_dataset.take(5))
 
 	downsample(64)
 
 	downsample(64)
 
-	generator = generator()
+	generatornn = generator()
 
-	discriminator = discriminator()
+	discriminatornn = discriminator()
 
 	loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 	  
@@ -295,9 +321,9 @@ def nn(num_epochs, dev_img, img_tensor):
 	discriminator_optimazer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
 	checkpoint_prefix = os.path.join(CHECKPATH,'ckpt')
-	checkpoint = tf.train.Checkpoint(generator_optimazer=generator_optimazer, discriminator_optimazer=discriminator_optimazer, generator=generator, discriminator=discriminator)
+	checkpoint = tf.train.Checkpoint(generator_optimazer=generator_optimazer, discriminator_optimazer=discriminator_optimazer, generator=generatornn, discriminator=discriminatornn)
 	#checkpoint.restore(tf.train.latest_checkpoint(INPATH)).assert_consumed()
 
-	@tf.function()
+	#@tf.function()
 
 	train(train_dataset, num_epochs)

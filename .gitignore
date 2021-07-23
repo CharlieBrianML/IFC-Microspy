@@ -1,3 +1,6 @@
 deconvolutions
 __pycache__
 oib_files
+training_deconv
+training_set
+.gitignore
