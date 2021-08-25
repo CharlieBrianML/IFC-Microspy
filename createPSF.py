@@ -3,18 +3,13 @@
 # ## ###############################################
 #
 # createPSF.py
-# Genera una matriz o tensor que contiene una psf dados metadatos de entrada
+# This module use of the psf library for calculating point spread functions for fluorescence microscopy
 #
 # Autor: Charlie Brian Monterrubio Lopez
 # License: MIT
 #
 # ## ###############################################
 
-"""Point Spread Function example.
-
-Demonstrate the use of the psf library for calculating point spread functions for fluorescence microscopy.
-
-"""
 import numpy as np
 import psf
 
@@ -32,7 +27,6 @@ def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=
 		'magnification': 1.0,
 		'pinhole_radius': 0.05,  # in micrometers
 		'pinhole_shape': 'round',
-		#'underfilling': 2.0
 	}
 	args.update(kwargs)
 
@@ -124,9 +118,11 @@ def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=
 	return psf_matrix
 	
 def normalize_matrix(matrix):
+	"""This function normalize a matrix"""
 	return np.uint8(255*matrix)
 	
 def constructpsf(metadata, channel, psf_vol, psftype):
+	"""This function defines the parameters to build a psf"""
 	if psf_vol:
 		shape = (int((metadata['Axis 3 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
 		dims = (metadata['Axis 3 Parameters Common']['EndPosition']/1000,metadata['Axis 0 Parameters Common']['EndPosition'])
@@ -151,6 +147,7 @@ def constructpsf(metadata, channel, psf_vol, psftype):
 	magnification=magnification, em_wavelen=em_wavelen, realshape=(int(metadata['Axis 3 Parameters Common']['MaxSize']),int(metadata['Axis 0 Parameters Common']['MaxSize'])))	
 
 def shape_psf(tensor, metadata, psftype):
+	"""This function defines the dimensions that the psf will have"""
 	dimtensor = tensor.ndim
 	print(psftype)
 
