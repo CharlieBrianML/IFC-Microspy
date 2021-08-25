@@ -3,7 +3,7 @@
 # ## ###############################################
 #
 # ifc_srm.py
-# Archivo principal
+# File main
 #
 # Autor: Charlie Brian Monterrubio Lopez
 # License: MIT
