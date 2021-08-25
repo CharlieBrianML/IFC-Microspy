@@ -3,7 +3,7 @@
 # ## ###############################################
 #
 # tiff.py
-# Contiene las funciones para lectura y procesamiento de archivos .tif
+# Contains the functions for reading and processing .tif files
 #
 # Autor: Charlie Brian Monterrubio Lopez
 # License: MIT
@@ -22,18 +22,17 @@ datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'S
 '[Channel 1 Parameters] EmissionWavelength', '[Channel 2 Parameters] EmissionWavelength', '[Channel 3 Parameters] EmissionWavelength','[Channel 4 Parameters] EmissionWavelength',
 '[Reference Image Parameter] HeightUnit', '[Axis 3 Parameters Common] PixUnit', '[Axis 3 Parameters Common] EndPosition', '[Axis 3 Parameters Common] StartPosition')
 
-#Funcion que lee un archivo .tif
 def readTiff(fileTiff):
-	img = io.imread(fileTiff) #Lee el archivo .tif
-	#
+	"""Function that reads a .tif file"""
+	img = io.imread(fileTiff)
 	return img
 	
-#Funcion que convierte una matriz multidimensional a un archivo .tif
 def imgtoTiff(imgs,savepath):
+	"""Function that converts a multidimensional array to a .tif file"""
 	tifffile.imsave(savepath,imgs) #[[[]]] -> .tif
 
-#Funcion que convierte imagenes a matrices multidimensionales
 def imgtoMatrix(img_list):
+	"""Function that converts images to multidimensional arrays"""
 	cnt_num = 0
 	for img in img_list: #Estraemos cada imagen de la lista
 		new_img = img[np.newaxis, ::] #Convertimos la imagen a una matriz multidimensional
@@ -45,6 +44,7 @@ def imgtoMatrix(img_list):
 	return tiff_list
 	
 def metadata_format(metadata):
+	"""Formats metadata extracted from a .tif file"""
 	metadata_dic = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 	'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
 	'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0}}
@@ -67,6 +67,7 @@ def metadata_format(metadata):
 	return metadata_dic
 
 def getMetadata(filename):
+	"""Get metadata from a .tif file"""
 	metadata = []
 	try:
 		with tifffile.TiffFile(filename) as tif:
@@ -85,5 +86,4 @@ def getMetadata(filename):
 					metadata.append(tuple(taginfo.replace(" ", "").split('=')))
 	except IndexError:
 		print('No metadata found')
-	#print(metadata)
 	return metadata_format(dict(metadata))
