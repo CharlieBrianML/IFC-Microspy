@@ -3,7 +3,7 @@
 # ## ###############################################
 #
 # ifc_srm.py
-# File main
+# Archivo principal
 #
 # Autor: Charlie Brian Monterrubio Lopez
 # License: MIT
@@ -17,6 +17,7 @@ import deconvolution as dv
 import tiff as tif
 import numpy as np
 import interfaceTools as it
+import sr
 	
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv = (None,None,None,None,None,None, None)
@@ -130,9 +131,11 @@ def createpsf_event():
 	opcDeconv.createButtonXY('Deconvolution '+entryIterations.get()+' '+entryWeight.get(), deconvolution_event, 100, 140)
 	
 def neural_network_event():
-	from pix2pix import nn
 	global tensor_deconv
-	nn(100, tensor_deconv, img_tensor)
+	#from pix2pix import nn
+	#nn(5, tensor_deconv, img_tensor)
+	from sr import nn
+	nn(tensor_deconv, img_tensor)
 	
 	
 #Se crea la ventana principal del programa
