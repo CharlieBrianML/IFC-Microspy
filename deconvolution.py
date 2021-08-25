@@ -25,6 +25,7 @@ import numpy as np
 message = ''
 
 def deconvolutionTiff(img,psf,iterations,weight):
+	"""Performs deconvolution of a multichannel file"""
 	#deconv_list=np.zeros(img.shape)
 	
 	if(img.ndim==3):
@@ -91,6 +92,7 @@ def deconvolutionTiff(img,psf,iterations,weight):
 	return deconv_list
 	
 def deconvolutionRGB(img,psf,iterations,weight):
+	"""Performs deconvolution of a RGB file"""
 	imgG=imf.escalaGrises(img)
 	img_denoised = imf.denoisingTV(imgG,weight)
 	deconv=deconvolveTF(img_denoised, psf, iterations) #Funcion de deconvolucion de imagenes
@@ -99,6 +101,7 @@ def deconvolutionRGB(img,psf,iterations,weight):
 	return deconvC
 	
 def deconvolution1Frame(img,psf,iterations):
+	"""Performs deconvolution of a matrix"""
 	img_denoised = imf.denoisingTV(imgG,weight)
 	deconv=deconvolveTF(img_denoised, psf, iterations) #Funcion de deconvolucion de imagenes
 	deconvN=imf.normalizar(deconv)
@@ -106,6 +109,7 @@ def deconvolution1Frame(img,psf,iterations):
 	
 
 def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
+	"""This function is in charge of determining how the provided matrix should be processed together with the psf matrix"""
 	global message
 	to=time()
 	# psf_tensor_aux = tif.readTiff('oib_files/psf_0005.tif')
