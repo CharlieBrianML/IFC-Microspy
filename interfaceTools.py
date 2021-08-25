@@ -3,7 +3,7 @@
 # ## ###############################################
 #
 # interfaceTools.py
-# Contiene todas las herramientas para la creacion de una interfaz
+# Contains all the tools for creating an interface
 #
 # Autor: Charlie Brian Monterrubio Lopez
 # License: MIT
@@ -35,6 +35,7 @@ tensor_img = None
 panelImg = None
 
 def openFile():
+	"""This function open files of type .oib .tif and .bmp"""
 	global file, tensor_img, panelImg
 	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Seleccione archivo', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp')))
 	if(len(file)>0):
@@ -76,11 +77,13 @@ def openFile():
 	#placeImage(venImg, file)
 	
 def saveFile():
+	"""This function save files of type .oib .tif and .bmp"""
 	global file
 	savepath = fd.asksaveasfilename(initialdir = '/',title = 'Seleccione archivo', defaultextension = '.png',filetypes = (('png files','*.png'),('jpg f|iles','*.jpg'),('bmp files','*.bmp'),('tif files','*.tif')))
 	cv2.imwrite(savepath,cv2.imread(file))
 	
 def createWindowMain():
+	"""Definition of the main window"""
 	# Define la ventana principal de la aplicación
 	#mainWindow = Tk() 
 	mainWindow.geometry('500x50') # anchura x altura
@@ -93,43 +96,53 @@ def createWindowMain():
 	
 #def createMenu(mainWindow):
 def createMenu():
+	"""This function creates a menu"""
 	#Barra superior
 	menu = Menu(mainWindow)
 	mainWindow.config(menu=menu)
 	return menu
 	
 def createOption(menu):
+	"""This function creates a menu option"""
 	opc = Menu(menu, tearoff=0)
 	return opc
 	
 def createCommand(opc, labelName, commandName):
+	"""This function creates a command"""
 	opc.add_command(label=labelName, command = commandName)
 	
 def createCascade(menu, labelName, option):
+	"""This function creates a tab main"""
 	menu.add_cascade(label=labelName, menu=option)
 	
 def createButton(text, command, side):
+	"""This function creates a button"""
 	ttk.Button(mainWindow, text=text, command=command).pack(side=side)
 	
 def createEntry(stringVar,x,y):
+	"""This function creates a entry"""
 	entry = ttk.Entry(mainWindow, textvariable=stringVar)
 	entry.place(x=x, y=y)
 	return entry
 
 def createLabel(text,x,y):
+	"""This function creates a label"""
 	label = Label(mainWindow, text=text, font=("Arial", 12)).place(x=x, y=y)
 	
 def createStringVar():
+	"""This function creates a StringVar"""
 	nombre = StringVar()
 	return nombre
 	
 def createStatusBar():
+	"""This function creates a status bar"""
 	global statusbar
 	statusbar = Label(mainWindow, text='IFC SuperResolution v0.0.11', bd=1, relief=SUNKEN, anchor=W)
 	statusbar.pack(side=BOTTOM, fill=X)
 	return statusbar
 	
 class NewWindow:
+	"""This class contains the functions to define a window"""
 	
 	def __init__(self,nameWindow,size = None):
 		self.nameWindow = nameWindow
