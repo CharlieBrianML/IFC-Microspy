@@ -11,6 +11,7 @@
 # ## ###############################################
 
 from tkinter import messagebox
+from shutil import rmtree
 import oibread as oib
 import createPSF as cpsf
 import deconvolution as dv
@@ -137,7 +138,13 @@ def neural_network_event():
 	from sr import nn
 	nn(tensor_deconv, img_tensor)
 	
-	
+def on_closing():
+	if not((messagebox.askyesno(message="Do you want to save the generated cache?", title="Cache"))):
+		rmtree("output_NN")
+		rmtree("training_deconv")
+		rmtree("training_set")
+	it.mainWindow.destroy()	
+		
 #Se crea la ventana principal del programa
 it.createWindowMain()
 #Se crea menu desplegable
@@ -151,12 +158,14 @@ it.createCascade(menu, 'File', opc1)
 
 opc2 = it.createOption(menu)
 it.createCommand(opc2, "Deconvolution", psf_parameters)
-it.createCommand(opc2, "SuperResolution", neural_network_event)
+it.createCommand(opc2, "Neural Network", neural_network_event)
 #it.createCommand(opc2, "Zoom", mainWindow.quit)
 it.createCascade(menu, 'Image', opc2)
 
 #it.createStatusBar()
 statusBar = it.createStatusBar()
 #statusBar['text']=dv.message
+
+it.mainWindow.protocol("WM_DELETE_WINDOW", on_closing)
 
 it.mainWindow.mainloop()
