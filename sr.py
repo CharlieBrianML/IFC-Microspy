@@ -169,6 +169,6 @@ def nn(dev_img, img_tensor):
 	plt.subplot(133)
 	fig.tight_layout()
 	plot_image(tf.squeeze(fake_image), "Neural Network")
-	plt.savefig("NeuralNetwork_c"+str(c)+"_z"+str(z)+".jpg", bbox_inches="tight")
+	plt.savefig("output_NN/NeuralNetwork_c"+str(c)+"_z"+str(z)+".jpg", bbox_inches="tight")
 	print("PSNR: %f" % psnr)
 	plt.show()
