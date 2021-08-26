@@ -4,3 +4,4 @@ oib_files
 training_deconv
 training_set
 gitignore
+output_NN
