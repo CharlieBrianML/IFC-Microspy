@@ -97,21 +97,21 @@ def nn(dev_img, img_tensor):
 				di[:,:,0] = np.uint8(dev_img[z,c,:,:])
 				di[:,:,1] = np.uint8(dev_img[z,c,:,:])
 				di[:,:,2] = np.uint8(dev_img[z,c,:,:])
-				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', di)
+				cv2.imwrite('training_deconv/'+str(c+1)+'_'+str(z+1)+'.jpg', di)
 				
 		for c in range(img_tensor.shape[0]):
 			for z in range(img_tensor.shape[1]):
 				it[:,:,0] = np.uint8(img_tensor[c,z,:,:])
 				it[:,:,1] = np.uint8(img_tensor[c,z,:,:])
 				it[:,:,2] = np.uint8(img_tensor[c,z,:,:])
-				cv2.imwrite('training_deconv/'+str(c+1)+'_'+str(z+1)+'.jpg', it)		
+				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)		
 	
 	# Declaring Constants
-	IMAGE_PATH = "training_deconv/1_1.jpg"
+	IMAGE_PATH = "training_deconv/1_7.jpg"
 	SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
 
 	imgdeconv=cv2.imread(IMAGE_PATH,0)
-	img=cv2.imread('training_set/1_1.jpg',0)
+	img=cv2.imread('training_set/1_7.jpg',0)
 	hr_image = preprocess_image(IMAGE_PATH)
 	lr_image = downscale_image(tf.squeeze(hr_image))
 
@@ -138,7 +138,7 @@ def nn(dev_img, img_tensor):
 	# plot_image(tf.squeeze(fake_image), title="Super Resolution")
 	# save_image(tf.squeeze(fake_image), filename="Super Resolution")
 
-	plot_image(tf.squeeze(fake_image), title="Super Resolution")
+	plot_image(tf.squeeze(fake_image), title="Neural Network")
 	# Calculating PSNR wrt Original Image
 	psnr = tf.image.psnr(tf.clip_by_value(fake_image, 0, 255),tf.clip_by_value(hr_image, 0, 255), max_val=255)
 	print("PSNR Achieved: %f" % psnr)
@@ -146,8 +146,8 @@ def nn(dev_img, img_tensor):
 	c=0
 	z=0
 	
-	if not(os.path.isdir('output')):
-		os.mkdir('output')
+	if not(os.path.isdir('output_NN')):
+		os.mkdir('output_NN')
 
 	plt.rcParams['figure.figsize'] = [15, 10]
 	fig, axes = plt.subplots(1, 3)
@@ -159,7 +159,7 @@ def nn(dev_img, img_tensor):
 	plt.title('Original')
 	#plot_image(img_tensor[z,c,:,:], title="Original")
 	plt.subplot(132)
-	save_image(tf.squeeze(hr_image), filename='output/SuperResolution')
+	save_image(tf.squeeze(hr_image), filename='output_NN/SuperResolution')
 	fig.tight_layout()
 	#plt.imshow(dev_img[c,z,:,:], cmap='gray')
 	plt.imshow(imgdeconv, cmap='gray')
@@ -168,7 +168,7 @@ def nn(dev_img, img_tensor):
 	#plot_image(dev_img[c,z,:,:], "Deconvolution")
 	plt.subplot(133)
 	fig.tight_layout()
-	plot_image(tf.squeeze(fake_image), "Super Resolution")
-	plt.savefig("ESRGAN_DIV2K.jpg", bbox_inches="tight")
+	plot_image(tf.squeeze(fake_image), "Neural Network")
+	plt.savefig("NeuralNetwork_c"+str(c)+"_z"+str(z)+".jpg", bbox_inches="tight")
 	print("PSNR: %f" % psnr)
 	plt.show()
