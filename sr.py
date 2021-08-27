@@ -107,11 +107,11 @@ def nn(dev_img, img_tensor):
 				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)		
 	
 	# Declaring Constants
-	IMAGE_PATH = "training_deconv/1_7.jpg"
+	IMAGE_PATH = "training_deconv/1_6.jpg"
 	SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
 
 	imgdeconv=cv2.imread(IMAGE_PATH,0)
-	img=cv2.imread('training_set/1_7.jpg',0)
+	img=cv2.imread('training_set/1_6.jpg',0)
 	hr_image = preprocess_image(IMAGE_PATH)
 	lr_image = downscale_image(tf.squeeze(hr_image))
 
@@ -143,8 +143,8 @@ def nn(dev_img, img_tensor):
 	psnr = tf.image.psnr(tf.clip_by_value(fake_image, 0, 255),tf.clip_by_value(hr_image, 0, 255), max_val=255)
 	print("PSNR Achieved: %f" % psnr)
 
-	c=0
-	z=0
+	c=1
+	z=6
 	
 	if not(os.path.isdir('output_NN')):
 		os.mkdir('output_NN')
