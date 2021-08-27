@@ -172,3 +172,4 @@ def nn(dev_img, img_tensor):
 	plt.savefig("output_NN/NeuralNetwork_c"+str(c)+"_z"+str(z)+".jpg", bbox_inches="tight")
 	print("PSNR: %f" % psnr)
 	plt.show()
+	#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
