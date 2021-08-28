@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 import cv2
 #os.environ["TFHUB_DOWNLOAD_PROGRESS"] = "True"
 
+model = None
+
 def preprocess_image(image_path):
 	""" Loads image from path and preprocesses to make it model ready
 	  Args:
@@ -65,7 +67,26 @@ def downscale_image(image):
 	lr_image = np.asarray(Image.fromarray(image.numpy()).resize([image_size[0] // 4, image_size[1] // 4],Image.BICUBIC))
 	lr_image = tf.expand_dims(lr_image, 0)
 	lr_image = tf.cast(lr_image, tf.float32)
-	return lr_image	
+	return lr_image
+	
+def model_NeuralNetwork(image_path):
+	global model
+	#SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
+	hr_image = preprocess_image(image_path)
+	lr_image = downscale_image(tf.squeeze(hr_image))
+	#model = hub.load(SAVED_MODEL_PATH)
+
+	# start = time.time()
+	# fake_image = model(hr_image)
+	# fake_image = tf.squeeze(fake_image)
+	# print("Time Taken: %f" % (time.time() - start))
+
+	start = time.time()
+	fake_image = model(lr_image)
+	fake_image = tf.squeeze(fake_image)
+	print("Time Taken: %f" % (time.time() - start))
+	return fake_image, hr_image
+	
 		
 #%matplotlib inline
 def plot_image(image, title=""):
@@ -80,9 +101,16 @@ def plot_image(image, title=""):
 	image = Image.fromarray(tf.cast(image, tf.uint8).numpy())
 	plt.imshow(image)
 	plt.axis("off")
-	plt.title(title)	
+	plt.title(title)
+	
+def tensor_to_array(image):
+	image = np.asarray(image)
+	image = tf.clip_by_value(image, 0, 255)
+	image = Image.fromarray(tf.cast(image, tf.uint8).numpy())	
+	return image
 
 def nn(dev_img, img_tensor):
+	global model
 	
 	if not(os.path.isdir('training_deconv')) and not(os.path.isdir('training_set')):
 		os.mkdir('training_deconv')
@@ -106,17 +134,19 @@ def nn(dev_img, img_tensor):
 				it[:,:,2] = np.uint8(img_tensor[c,z,:,:])
 				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)		
 	
+	imgs_deconv = os.listdir('training_deconv')
+	
 	# Declaring Constants
 	IMAGE_PATH = "training_deconv/1_6.jpg"
 	SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
 
 	imgdeconv=cv2.imread(IMAGE_PATH,0)
 	img=cv2.imread('training_set/1_6.jpg',0)
-	hr_image = preprocess_image(IMAGE_PATH)
-	lr_image = downscale_image(tf.squeeze(hr_image))
+	# hr_image = preprocess_image(IMAGE_PATH)
+	# lr_image = downscale_image(tf.squeeze(hr_image))
 
 	# Plotting Low Resolution Image
-	plot_image(tf.squeeze(lr_image), title="Low Resolution")
+	#plot_image(tf.squeeze(lr_image), title="Low Resolution")
 
 	# Plotting Original Resolution image
 	#plot_image(tf.squeeze(hr_image), title="Original Image")
@@ -124,51 +154,59 @@ def nn(dev_img, img_tensor):
 
 	model = hub.load(SAVED_MODEL_PATH)
 
+	# # start = time.time()
+	# # fake_image = model(hr_image)
+	# # fake_image = tf.squeeze(fake_image)
+	# # print("Time Taken: %f" % (time.time() - start))
+
 	# start = time.time()
-	# fake_image = model(hr_image)
+	# fake_image = model(lr_image)
 	# fake_image = tf.squeeze(fake_image)
 	# print("Time Taken: %f" % (time.time() - start))
-
-	start = time.time()
-	fake_image = model(lr_image)
-	fake_image = tf.squeeze(fake_image)
-	print("Time Taken: %f" % (time.time() - start))
 
 	# # Plotting Super Resolution Image
 	# plot_image(tf.squeeze(fake_image), title="Super Resolution")
 	# save_image(tf.squeeze(fake_image), filename="Super Resolution")
+	
+	if not(os.path.isdir('output_NN')):
+		os.mkdir('output_NN')	
+	
+	for image in imgs_deconv:
+		print('Processing: ', image)
+		fake_image, hr_image = model_NeuralNetwork('training_deconv/'+image)
+		plt.imsave("output_NN/neural_network_"+image.split('.')[0]+'.png', tensor_to_array(tf.squeeze(fake_image)), cmap='gray')
+		#cv2.imwrite("output_NN/neural_network_"+image.split('.')[0]+'.png', tensor_to_array(tf.squeeze(fake_image)))
+	
+	#fake_image, hr_image = model_NeuralNetwork(IMAGE_PATH)
 
-	plot_image(tf.squeeze(fake_image), title="Neural Network")
-	# Calculating PSNR wrt Original Image
-	psnr = tf.image.psnr(tf.clip_by_value(fake_image, 0, 255),tf.clip_by_value(hr_image, 0, 255), max_val=255)
-	print("PSNR Achieved: %f" % psnr)
+	# plot_image(tf.squeeze(fake_image), title="Neural Network")
+	# # Calculating PSNR wrt Original Image
+	# psnr = tf.image.psnr(tf.clip_by_value(fake_image, 0, 255),tf.clip_by_value(hr_image, 0, 255), max_val=255)
+	# print("PSNR Achieved: %f" % psnr)
 
 	c=1
 	z=0
-	
-	if not(os.path.isdir('output_NN')):
-		os.mkdir('output_NN')
 
-	plt.rcParams['figure.figsize'] = [15, 10]
-	fig, axes = plt.subplots(1, 3)
-	fig.tight_layout()
-	plt.subplot(131)
-	#plt.imshow(img_tensor[z,c,:,:], cmap='gray')
-	plt.imshow(img, cmap='gray')
-	plt.axis("off")
-	plt.title('Original')
-	#plot_image(img_tensor[z,c,:,:], title="Original")
-	plt.subplot(132)
-	save_image(tf.squeeze(hr_image), filename='output_NN/SuperResolution')
-	fig.tight_layout()
-	#plt.imshow(dev_img[c,z,:,:], cmap='gray')
-	plt.imshow(imgdeconv, cmap='gray')
-	plt.axis("off")
-	plt.title('Deconvolution')	
-	#plot_image(dev_img[c,z,:,:], "Deconvolution")
-	plt.subplot(133)
-	fig.tight_layout()
-	plot_image(tf.squeeze(fake_image), "Neural Network")
-	plt.savefig("output_NN/NeuralNetwork_c"+str(c)+"_z"+str(z)+".jpg", bbox_inches="tight")
-	print("PSNR: %f" % psnr)
-	plt.show()
+	# plt.rcParams['figure.figsize'] = [15, 10]
+	# fig, axes = plt.subplots(1, 3)
+	# fig.tight_layout()
+	# plt.subplot(131)
+	# #plt.imshow(img_tensor[z,c,:,:], cmap='gray')
+	# plt.imshow(img, cmap='gray')
+	# plt.axis("off")
+	# plt.title('Original')
+	# #plot_image(img_tensor[z,c,:,:], title="Original")
+	# plt.subplot(132)
+	# save_image(tf.squeeze(hr_image), filename='output_NN/SuperResolution')
+	# fig.tight_layout()
+	# #plt.imshow(dev_img[c,z,:,:], cmap='gray')
+	# plt.imshow(imgdeconv, cmap='gray')
+	# plt.axis("off")
+	# plt.title('Deconvolution')	
+	# #plot_image(dev_img[c,z,:,:], "Deconvolution")
+	# plt.subplot(133)
+	# fig.tight_layout()
+	# plot_image(tf.squeeze(fake_image), "Neural Network")
+	# plt.savefig("output_NN/NeuralNetwork_c"+str(c)+"_z"+str(z)+".jpg", bbox_inches="tight")
+	# print("PSNR: %f" % psnr)
+	# plt.show()
