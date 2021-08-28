@@ -17,6 +17,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
 import matplotlib.pyplot as plt
+import interfaceTools as it
 import cv2
 #os.environ["TFHUB_DOWNLOAD_PROGRESS"] = "True"
 
@@ -110,6 +111,7 @@ def tensor_to_array(image):
 	return image
 
 def nn(dev_img, img_tensor):
+	import tifffile
 	global model
 	
 	if not(os.path.isdir('training_deconv')) and not(os.path.isdir('training_set')):
@@ -132,16 +134,28 @@ def nn(dev_img, img_tensor):
 				it[:,:,0] = np.uint8(img_tensor[c,z,:,:])
 				it[:,:,1] = np.uint8(img_tensor[c,z,:,:])
 				it[:,:,2] = np.uint8(img_tensor[c,z,:,:])
-				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)		
+				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)			
 	
+	#img_output = np.zeros(dev_img.shape)
+	img_output = np.zeros((26, 4, 800, 800))
+	'''
+	print('imagen a guardar: ', dev_img.shape)
+	tifffile.imsave('training_deconv/image.tif', dev_img, imagej=True)					
+	'''
 	imgs_deconv = os.listdir('training_deconv')
 	
 	# Declaring Constants
-	IMAGE_PATH = "training_deconv/1_6.jpg"
+	#IMAGE_PATH = "training_deconv/1_6.jpg"
 	SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
 
-	imgdeconv=cv2.imread(IMAGE_PATH,0)
-	img=cv2.imread('training_set/1_6.jpg',0)
+	#imgdeconv=cv2.imread(IMAGE_PATH,0)
+	#img=cv2.imread('training_set/1_6.jpg',0)
+	'''
+	from skimage import io
+	img = io.imread('training_deconv/image.tif')
+	
+	print('imagen leida: ', img.shape)
+	'''
 	# hr_image = preprocess_image(IMAGE_PATH)
 	# lr_image = downscale_image(tf.squeeze(hr_image))
 
@@ -170,12 +184,35 @@ def nn(dev_img, img_tensor):
 	
 	if not(os.path.isdir('output_NN')):
 		os.mkdir('output_NN')	
-	
+
 	for image in imgs_deconv:
 		print('Processing: ', image)
 		fake_image, hr_image = model_NeuralNetwork('training_deconv/'+image)
-		plt.imsave("output_NN/neural_network_"+image.split('.')[0]+'.png', tensor_to_array(tf.squeeze(fake_image)), cmap='gray')
+		img_array = tensor_to_array(tf.squeeze(fake_image))
+		plt.imsave("output_NN/neural_network_"+image.split('.')[0]+'.png', img_array, cmap='gray')
+		print(type(np.asarray(img_array)))
+		c = int(image.split('.')[0].split('_')[0])-1
+		z = int(image.split('.')[0].split('_')[1])-1
+		print('Channel; ', c)
+		print('Z; ', z)
+		#img_output[z,c,:,:] = cv2.merge(np.asarray(img_array))
+		img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
 		#cv2.imwrite("output_NN/neural_network_"+image.split('.')[0]+'.png', tensor_to_array(tf.squeeze(fake_image)))
+	'''
+	for c in range(img.shape[3]):
+		for z in range(img.shape[0]):
+			print('Processing channel '+str(c)+' z: ', str(z))
+			fake_image, hr_image = model_NeuralNetwork(img)
+			img_array = tensor_to_array(tf.squeeze(fake_image))
+			plt.imsave("output_NN/neural_network_"+image.split('.')[0]+'.png', img_array, cmap='gray')
+			print(type(np.asarray(img_array)))
+			img_output[] = np.asarray(img_array)
+	'''	
+	#nnimg = it.NewWindow('Neural Network '+it.file.split('/')[len(it.file.split('/'))-1])
+	#nnimg.desplay_image('Neural Network '+it.file.split('/')[len(it.file.split('/'))-1], )	
+	import interfaceTools as it
+	nnimg = it.NewWindow('Neural Network ')
+	nnimg.desplay_image('Neural Network ', img_output)			
 	
 	#fake_image, hr_image = model_NeuralNetwork(IMAGE_PATH)
 
