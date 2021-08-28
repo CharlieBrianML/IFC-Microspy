@@ -269,9 +269,11 @@ class NewWindow:
 		
 	def scrollImagez(self, *args):
 
-		if (int(args[1]) == -1 and self.posz > 0):
+		#if (int(args[1]) == -1 and self.posz > 0):
+		if ('-1' in args and self.posz > 0):
 			self.posz = self.posz - 1
-		if (int(args[1]) == 1 and self.posz < self.axisz_max-1):
+		#if (int(args[1]) == 1 and self.posz < self.axisz_max-1):
+		if ('1' in args and self.posz < self.axisz_max-1):
 			self.posz = self.posz + 1
 			
 		print(self.posc,self.posz)
@@ -285,10 +287,11 @@ class NewWindow:
 		self.scrollbarz.config(command=self.listboxz.yview(self.posz))	
 		
 	def scrollImagec(self, *args):
-
-		if (int(args[1]) == -1 and self.posc > 0):
+		#if (int(args[1]) == -1 and self.posc > 0):
+		if ('-1' in args and self.posc > 0):
 			self.posc = self.posc - 1
-		if (int(args[1]) == 1 and self.posc < self.axisc_max-1):
+		#if (int(args[1]) == 1 and self.posc < self.axisc_max-1):
+		if ('1' in args and self.posc < self.axisc_max-1):
 			self.posc = self.posc + 1
 			
 		print(self.posc,self.posz)
