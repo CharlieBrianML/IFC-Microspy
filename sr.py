@@ -144,7 +144,7 @@ def nn(dev_img, img_tensor):
 	print("PSNR Achieved: %f" % psnr)
 
 	c=1
-	z=6
+	z=0
 	
 	if not(os.path.isdir('output_NN')):
 		os.mkdir('output_NN')
