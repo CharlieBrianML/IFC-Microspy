@@ -139,11 +139,16 @@ def neural_network_event():
 	nn(tensor_deconv, img_tensor)
 	
 def on_closing():
+	import os
 	if not((messagebox.askyesno(message="Do you want to save the generated cache?", title="Cache"))):
-		rmtree("output_NN")
-		rmtree("training_deconv")
-		rmtree("training_set")
-		os.remove('info.npy')
+		if (os.path.isdir('output_NN')):
+			rmtree("output_NN")
+		if (os.path.isdir('training_deconv')):
+			rmtree("training_deconv")
+		if (os.path.isdir('training_set')):
+			rmtree("training_set")
+		if (os.path.isfile('info.npy')):
+			os.remove('info.npy')
 	it.mainWindow.destroy()
 		
 #Se crea la ventana principal del programa
