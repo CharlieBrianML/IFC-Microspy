@@ -5,3 +5,4 @@ training_deconv
 training_set
 gitignore
 output_NN
+info.npy
