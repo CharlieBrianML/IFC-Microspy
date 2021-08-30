@@ -143,7 +143,8 @@ def on_closing():
 		rmtree("output_NN")
 		rmtree("training_deconv")
 		rmtree("training_set")
-	it.mainWindow.destroy()	
+		os.remove('info.npy')
+	it.mainWindow.destroy()
 		
 #Se crea la ventana principal del programa
 it.createWindowMain()

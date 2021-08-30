@@ -112,6 +112,7 @@ def tensor_to_array(image):
 
 def nn(dev_img, img_tensor):
 	import tifffile
+	import interfaceTools as it
 	global model
 	
 	if not(os.path.isdir('training_deconv')) and not(os.path.isdir('training_set')):
@@ -136,8 +137,8 @@ def nn(dev_img, img_tensor):
 				it[:,:,2] = np.uint8(img_tensor[c,z,:,:])
 				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)			
 	
-	#img_output = np.zeros(dev_img.shape)
-	img_output = np.zeros((26, 4, 800, 800))
+	info = np.load('info.npy', allow_pickle=True).item()
+	img_output = np.zeros((info['z'], info['c'], info['x'], info['y']))
 	'''
 	print('imagen a guardar: ', dev_img.shape)
 	tifffile.imsave('training_deconv/image.tif', dev_img, imagej=True)					

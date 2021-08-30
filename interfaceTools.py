@@ -33,6 +33,7 @@ filesPath = []
 statusbar = None
 tensor_img = None
 panelImg = None
+infoFile = {}
 
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""

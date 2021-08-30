@@ -192,4 +192,9 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	#it.statusbar['text']="Runtime: "+str(tt/60)+"minutes"
 	sleep(1)
 	message = ''
+	it.infoFile['z'] = deconvolution_matrix.shape[0]
+	it.infoFile['c'] = deconvolution_matrix.shape[1]
+	it.infoFile['x'] = deconvolution_matrix.shape[2]
+	it.infoFile['y'] = deconvolution_matrix.shape[3]
+	np.save('info.npy', it.infoFile)
 	return deconvolution_matrix
