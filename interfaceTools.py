@@ -287,10 +287,9 @@ class NewWindow:
 		self.scrollbarz.config(command=self.listboxz.yview(self.posz))	
 		
 	def scrollImagec(self, *args):
-		#if (int(args[1]) == -1 and self.posc > 0):
 		if ('-1' in args and self.posc > 0):
 			self.posc = self.posc - 1
-		#if (int(args[1]) == 1 and self.posc < self.axisc_max-1):
+		
 		if ('1' in args and self.posc < self.axisc_max-1):
 			self.posc = self.posc + 1
 			
@@ -306,9 +305,9 @@ class NewWindow:
 		
 	def scrollImagecs(self, *args):
 
-		if (int(args[1]) == -1 and self.posc > 0):
+		if ('-1' in args and self.posc > 0):
 			self.posc = self.posc - 1
-		if (int(args[1]) == 1 and self.posc < self.axisc_max-1):
+		if ('1' in args and self.posc < self.axisc_max-1):
 			self.posc = self.posc + 1
 			
 		print(self.posc,self.posz)
@@ -335,4 +334,4 @@ class NewWindow:
 			self.createStatusBar()
 			scrollc = self.scrollbarc(tensor_img.shape[0]-1, zscroll=False)
 			self.panelImg = self.placeImageTensor(tensor_img[0,:,:])
-		return tensor_img		
+		return tensor_img
