@@ -149,7 +149,7 @@ def on_closing():
 			rmtree("training_set")
 		if (os.path.isfile('info.npy')):
 			os.remove('info.npy')
-	it.mainWindow.destroy()
+	it.mainWindow.destroy()	
 		
 #Se crea la ventana principal del programa
 it.createWindowMain()

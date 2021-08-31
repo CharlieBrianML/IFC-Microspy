@@ -33,7 +33,8 @@ filesPath = []
 statusbar = None
 tensor_img = None
 panelImg = None
-infoFile = {}
+cmbxFile, opcSF = (None, None)
+windows_img = []
 
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""
@@ -55,9 +56,11 @@ def openFile():
 				print(tensor_img.shape)
 				
 				venImg = NewWindow(nameFile)
+				windows_img.append(venImg)
 				tensor_img = venImg.desplay_image(nameFile, tensor_img_mod)		
 			else:
 				venImg = NewWindow(nameFile)
+				windows_img.append(venImg)
 				venImg.placeImage(tensor_img)
 				
 		elif(os.path.splitext(nameFile)[1]=='.oib'):
@@ -65,23 +68,51 @@ def openFile():
 			tensor_img = oib.get_matrix_oib(file)
 			print(tensor_img.shape)
 			
-			venImg = NewWindow(nameFile)
+			venImg = NewWindow(nameFile.split('.')[0])
 			tensor_img = venImg.desplay_image(nameFile, tensor_img)
+			windows_img.append(venImg)
 			
 		else:
 			import cv2
 			matrix_img = cv2.imread(file)
 			venImg = NewWindow(nameFile)
-			#newVen = venImg.createNewWindow(file.split('/')[len(file.split('/'))-1])
 			venImg.placeImage(matrix_img)
-	#venImg = createNewWindow(file)
-	#placeImage(venImg, file)
 	
 def saveFile():
 	"""This function save files of type .oib .tif and .bmp"""
-	global file
-	savepath = fd.asksaveasfilename(initialdir = '/',title = 'Seleccione archivo', defaultextension = '.png',filetypes = (('png files','*.png'),('jpg f|iles','*.jpg'),('bmp files','*.bmp'),('tif files','*.tif')))
-	cv2.imwrite(savepath,cv2.imread(file))
+	global cmbxFile, opcSF
+	print(windows_img)
+	opcSF = NewWindow('Save File','300x100')
+	opcSF.createLabel('What image do you want to save?',20,20)
+	windows_img_names = getNamesWindows()
+	cmbxFile = opcSF.createCombobox2(windows_img_names,20,50)
+	opcSF.createButton('Save', saveFileEvent, 'bottom')
+	
+def saveFileEvent():
+	global cmbxFile, opcSF
+	import tifffile
+	import os
+	selected_file = cmbxFile.current()
+	image = windows_img[selected_file].tensor_img
+	namewin = windows_img[selected_file].nameWindow
+	
+	if(image.ndim==4):
+		savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
+		if (savepath!=''):
+			tifffile.imsave(savepath, image, imagej=True)
+			print('Saved file: ',savepath)
+			opcSF.destroy()
+	if(image.ndim==3):
+		tifffile.imsave(savepath, image, imagej=True)
+	if(image.ndim==2):	
+		savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
+		cv2.imwrite(savepath, image)
+		
+def getNamesWindows():
+	names = []
+	for window_object in windows_img:
+		names.append(window_object.nameWindow)
+	return names
 	
 def createWindowMain():
 	"""Definition of the main window"""
@@ -165,6 +196,8 @@ class NewWindow:
 		self.window.destroy()
 		if (self.nameWindow in filesName):
 			filesName.remove(self.nameWindow)
+		if (self in windows_img):
+			windows_img.remove(self)
 			
 	def destroy(self):
 		self.window.destroy()
@@ -219,6 +252,13 @@ class NewWindow:
 		if (len(filesName)>0):
 			dropdown.current(0)
 		dropdown.current(13)
+		return dropdown		
+		
+	def createCombobox2(self,values,x,y):
+		dropdown = ttk.Combobox(self.window, state="readonly",values = values, width=40)
+		dropdown.place(x=x, y=y)
+		if (len(values)>0):
+			dropdown.current(0)
 		return dropdown
 		
 	def scrollbarz(self, maxpos):
@@ -269,11 +309,9 @@ class NewWindow:
 		return imf.normalizar(resized)
 		
 	def scrollImagez(self, *args):
-
-		#if (int(args[1]) == -1 and self.posz > 0):
 		if ('-1' in args and self.posz > 0):
 			self.posz = self.posz - 1
-		#if (int(args[1]) == 1 and self.posz < self.axisz_max-1):
+		
 		if ('1' in args and self.posz < self.axisz_max-1):
 			self.posz = self.posz + 1
 			
