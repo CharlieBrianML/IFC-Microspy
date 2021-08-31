@@ -155,5 +155,7 @@ def nn(dev_img, img_tensor):
 		img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
 	print("Time Taken: %f" % (time.time() - start))	
 	
+	import interfaceTools as it
 	nnimg = it.NewWindow('Neural Network ')
+	it.windows_img.append(nnimg)
 	nnimg.desplay_image('Neural Network ', img_output)

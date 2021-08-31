@@ -35,6 +35,7 @@ tensor_img = None
 panelImg = None
 cmbxFile, opcSF = (None, None)
 windows_img = []
+infoFile = {}
 
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""
@@ -44,7 +45,7 @@ def openFile():
 		filesPath.append(file)
 		nameFile = file.split('/')[len(file.split('/'))-1]
 		if(os.path.splitext(nameFile)[1]=='.tif'):
-			print('Archivo: ', nameFile)
+			print('File: ', nameFile)
 			tensor_img = tif.readTiff(file)
 			
 			if(tensor_img.ndim==4):
@@ -64,7 +65,7 @@ def openFile():
 				venImg.placeImage(tensor_img)
 				
 		elif(os.path.splitext(nameFile)[1]=='.oib'):
-			print('Archivo: ', nameFile)
+			print('File: ', nameFile)
 			tensor_img = oib.get_matrix_oib(file)
 			print(tensor_img.shape)
 			
@@ -92,6 +93,7 @@ def saveFileEvent():
 	global cmbxFile, opcSF
 	import tifffile
 	import os
+	import numpy as np
 	selected_file = cmbxFile.current()
 	image = windows_img[selected_file].tensor_img
 	namewin = windows_img[selected_file].nameWindow
@@ -99,7 +101,7 @@ def saveFileEvent():
 	if(image.ndim==4):
 		savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
 		if (savepath!=''):
-			tifffile.imsave(savepath, image, imagej=True)
+			tifffile.imsave(savepath, np.uint16(image), imagej=True)
 			print('Saved file: ',savepath)
 			opcSF.destroy()
 	if(image.ndim==3):
@@ -192,7 +194,7 @@ class NewWindow:
 		self.tensor_img = None
 		
 	def on_closing(self):
-		print('Se cerro: ', self.nameWindow)
+		print('Closed: ', self.nameWindow)
 		self.window.destroy()
 		if (self.nameWindow in filesName):
 			filesName.remove(self.nameWindow)
@@ -318,7 +320,7 @@ class NewWindow:
 		print(self.posc,self.posz)
 		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)
 		self.statusbar.configure(text = self.text)
-		resized = self.resize_image_percent(tensor_img[self.posc,self.posz,:,:],60)
+		resized = self.resize_image_percent(self.tensor_img[self.posz,self.posc,:,:],60)
 		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
 		self.panelImg['image'] = self.img
@@ -335,7 +337,7 @@ class NewWindow:
 		print(self.posc,self.posz)
 		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)
 		self.statusbar.configure(text = self.text)
-		resized = self.resize_image_percent(tensor_img[self.posc,self.posz,:,:],60)
+		resized = self.resize_image_percent(self.tensor_img[self.posz,self.posc,:,:],60)
 		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
 		self.panelImg['image'] = self.img
@@ -362,10 +364,10 @@ class NewWindow:
 	def desplay_image(self, nameFile, tensor_img):
 		self.tensor_img = tensor_img
 		if tensor_img.ndim == 4:
-			self.update_axes(tensor_img.shape[0],tensor_img.shape[1])
+			self.update_axes(tensor_img.shape[1],tensor_img.shape[0])
 			self.createStatusBar()
-			scrollz = self.scrollbarz(tensor_img.shape[1]-1)
-			scrollc = self.scrollbarc(tensor_img.shape[0]-1)
+			scrollz = self.scrollbarz(tensor_img.shape[0]-1)
+			scrollc = self.scrollbarc(tensor_img.shape[1]-1)
 			self.panelImg = self.placeImageTensor(tensor_img[0,0,:,:])
 		
 		if tensor_img.ndim == 3:

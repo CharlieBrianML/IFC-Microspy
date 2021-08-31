@@ -153,9 +153,9 @@ def shape_psf(tensor, metadata, psftype):
 
 	if (dimtensor==4):
 		multipsf = np.zeros((tensor.shape[0],tensor.shape[1],tensor.shape[2],tensor.shape[3]))
-		for i in range(tensor.shape[0]):
-			print('\nGenerating psf channel: ',i)
-			multipsf[i,:,:,:] = constructpsf(metadata, i+1, True, psftype)		
+		for c in range(tensor.shape[1]):
+			print('\nGenerating psf channel: ',c)
+			multipsf[:,c,:,:] = constructpsf(metadata, c+1, True, psftype)		
 		# from tifffile import imsave
 		# imsave('psf_vol.tif', np.uint8(multipsf),  metadata = {'axes':'TZCYX'}, imagej=True)
 		#dv.deconvolutionMain(tensor,multipsf,2,20)

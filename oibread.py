@@ -22,4 +22,10 @@ def getMetadata(filename):
 def get_matrix_oib(filename):
 	"""Gets the array associated with the .oib file"""
 	matrix = imread(filename)
-	return matrix
+	if (matrix.ndim==4):
+		import numpy as np
+		matrix_aux = np.zeros((matrix.shape[1],matrix.shape[0],matrix.shape[2],matrix.shape[3]))
+		for c in range(matrix.shape[0]):
+			for z in range(matrix.shape[1]):
+				matrix_aux[z,c,:,:] = matrix[c,z,:,:]
+	return matrix_aux

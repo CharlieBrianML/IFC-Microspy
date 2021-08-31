@@ -57,11 +57,11 @@ def deconvolutionTiff(img,psf,iterations,weight):
 				print('Channel ',c+1,' deconvolved')
 				deconv_list[c,:,:,:]=deconv
 		else:
-			deconv_list=np.zeros((img.shape[1],img.shape[0],img.shape[2],img.shape[3]), dtype="int16")
-			for c in range(img.shape[0]):
-				bar = Bar("\nChannel "+str(c+1)+' :', max=img.shape[1])
-				for z in range(img.shape[1]):
-					img_denoised = img[c,z,:,:]
+			deconv_list=np.zeros((img.shape[0],img.shape[1],img.shape[2],img.shape[3]), dtype="int16")
+			for c in range(img.shape[1]):
+				bar = Bar("\nChannel "+str(c+1)+' :', max=img.shape[0])
+				for z in range(img.shape[0]):
+					img_denoised = img[z,c,:,:]
 					# if(weight!=0):
 						# img_denoised = imf.denoisingTV(img[c,z,:,:], weight)
 					# else:
@@ -70,7 +70,7 @@ def deconvolutionTiff(img,psf,iterations,weight):
 					# print('psf: ',psf[0,0,0,0])
 						
 					#deconv = deconvolveTF(img_denoised,psf[c,z,:,:], iterations) #Funcion de deconvolucion de imagenes
-					deconv= deconvolveTF(img[c,z,:,:],psf[c,z,:,:], iterations) #Funcion de deconvolucion de imagenes
+					deconv= deconvolveTF(img[z,c,:,:],psf[z,c,:,:], iterations) #Funcion de deconvolucion de imagenes
 					print('deconv: ',deconv[0,0])
 					if(weight!=0):
 						img_denoised = imf.denoisingTV(deconv, weight)
@@ -112,12 +112,6 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	"""This function is in charge of determining how the provided matrix should be processed together with the psf matrix"""
 	global message
 	to=time()
-	# psf_tensor_aux = tif.readTiff('oib_files/psf_0005.tif')
-	#psf_tensor_aux = tif.readTiff('oib_files/psf_0016.tif')
-	# for i in range(psf_tensor.shape[0]):
-		# psf_tensor[i,:,:]=psf_tensor_aux[:,:,i]
-	#psf_tensor = imf.normalizar(psf_tensor)
-	print('max psf: ',psf_tensor.max())
 
 	path = os.path.dirname(os.path.realpath(sys.argv[0])) #Direcctorio donde se almacenara el resultado
 	savepath = os.path.join(path,'deconvolutions/Deconvolution_'+nameFile.split('.')[0]+' i-'+str(i)+' w-'+str(weight)+'.tif')
@@ -149,6 +143,10 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 		#tifffile.imsave(savepath, np.uint16(imf.normalizar(img_tensor)), imagej=True)
 		message = 'Deconvolution successful, end of execution'
 		print(message)
+		it.infoFile['z'] = deconvolution_matrix.shape[0]
+		it.infoFile['c'] = deconvolution_matrix.shape[1]
+		it.infoFile['x'] = deconvolution_matrix.shape[2]
+		it.infoFile['y'] = deconvolution_matrix.shape[3]
 		
 	else:
 		if(extImage=='.tif'):
@@ -192,9 +190,5 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	#it.statusbar['text']="Runtime: "+str(tt/60)+"minutes"
 	sleep(1)
 	message = ''
-	it.infoFile['z'] = deconvolution_matrix.shape[0]
-	it.infoFile['c'] = deconvolution_matrix.shape[1]
-	it.infoFile['x'] = deconvolution_matrix.shape[2]
-	it.infoFile['y'] = deconvolution_matrix.shape[3]
 	np.save('info.npy', it.infoFile)
 	return deconvolution_matrix
