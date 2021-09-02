@@ -152,7 +152,7 @@ def shape_psf(tensor, metadata, psftype):
 	print(psftype)
 
 	if (dimtensor==4):
-		multipsf = np.zeros((tensor.shape[0],tensor.shape[1],tensor.shape[2],tensor.shape[3]))
+		multipsf = np.zeros(tensor.shape)
 		for c in range(tensor.shape[1]):
 			print('\nGenerating psf channel: ',c)
 			multipsf[:,c,:,:] = constructpsf(metadata, c+1, True, psftype)		
@@ -162,10 +162,13 @@ def shape_psf(tensor, metadata, psftype):
 	if (dimtensor==3):
 		multipsf = np.zeros(tensor.shape)
 		metadata['Axis 3 Parameters Common']['MaxSize']=0.0
-		for i in range(tensor.shape[0]):
-			print('\nGenerating psf channel: ',i)
-			multipsf[i,:,:] = constructpsf(metadata, i+1, False, psftype)
-			
+		for c in range(tensor.shape[0]):
+			print('\nGenerating psf channel: ',c)
+			multipsf[c,:,:] = constructpsf(metadata, c+1, False, psftype)
+	
+	if (dimtensor==2):
+		multipsf = np.zeros(tensor.shape)
+		multipsf = constructpsf(metadata, 1, False, psftype)
 	#from tifffile import imsave
 	#imsave('psf_matrix.tif', np.uint8(multipsf), metadata = {'axes':'TZCYX'}, imagej=True)
 			
