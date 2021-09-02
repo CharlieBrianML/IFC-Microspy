@@ -26,67 +26,52 @@ message = ''
 
 def deconvolutionTiff(img,psf,iterations,weight):
 	"""Performs deconvolution of a multichannel file"""
-	#deconv_list=np.zeros(img.shape)
+	deconv_list=np.zeros(img.shape,  dtype="int16")
 	
 	if(img.ndim==3):
 		for c in range(img.shape[0]):
-			deconv_list=np.zeros(img.shape)
-		
-			# if(weight!=0):
-				# img_denoised = imf.denoisingTV(img[c,:,:], weight)
-			# else:
-				# img_denoised = img[c,:,:]
-				
-			#deconv = deconvolveTF(img_denoised,psf[c,:,:],iterations) #Funcion de deconvolucion de imagenes
-			deconv = deconvolveTF(img[c,:,:],psf[c,:,:],iterations) #Funcion de deconvolucion de imagenes
-			print('deconv: ',deconv[0,0])
+			from skimage import io
+			#psf2 = np.uint16(io.imread('/home/charlie/test/psf_0005.tif'))
+			psf2 = io.imread('/home/charlie/test/psf_0005.tif')
+			print(psf2.shape)
+			#psf[c,:,:] = psf2[:,:,c]
+
+			deconv = deconvolveTF(img[c,:,:],psf[c,:,:],iterations) #Image deconvolution function
 			
 			if(weight!=0):
 				img_denoised = imf.denoisingTV(deconv, weight)
 			else:
 				img_denoised = deconv
 			
-			deconvN = imf.normalizar(img_denoised) #Se normaliza la matriz 
-			#deconvN = imf.normalizar(deconv) #Se normaliza la matriz 
+			deconvN = imf.normalizar(img_denoised) #The matrix is normalized
+			
 			print('Channel ',c+1,' deconvolved')
 			deconv_list[c,:,:]=deconvN
 	if(img.ndim==4):
 		if(imf.istiffRGB(img.shape)):
 			for c in range(img.shape[0]):
-				deconv= deconvolutionRGB(img[c,:,:,:],psf[c,:,:], iterations, weight) #Funcion de deconvolucion de imagenes
+				deconv= deconvolutionRGB(img[c,:,:,:],psf[c,:,:], iterations, weight) #Image deconvolution function
 				print('Channel ',c+1,' deconvolved')
 				deconv_list[c,:,:,:]=deconv
 		else:
-			deconv_list=np.zeros((img.shape[0],img.shape[1],img.shape[2],img.shape[3]), dtype="int16")
 			for c in range(img.shape[1]):
 				bar = Bar("\nChannel "+str(c+1)+' :', max=img.shape[0])
 				for z in range(img.shape[0]):
-					img_denoised = img[z,c,:,:]
-					# if(weight!=0):
-						# img_denoised = imf.denoisingTV(img[c,z,:,:], weight)
-					# else:
-						# img_denoised = img[c,z,:,:]
-					# print('img: ',img[0,0,0,0])
-					# print('psf: ',psf[0,0,0,0])
-						
-					#deconv = deconvolveTF(img_denoised,psf[c,z,:,:], iterations) #Funcion de deconvolucion de imagenes
-					deconv= deconvolveTF(img[z,c,:,:],psf[z,c,:,:], iterations) #Funcion de deconvolucion de imagenes
-					print('deconv: ',deconv[0,0])
+					deconv = deconvolveTF(img[z,c,:,:],psf[z,c,:,:], iterations) #Image deconvolution function
+					
 					if(weight!=0):
 						img_denoised = imf.denoisingTV(deconv, weight)
 					else:
-						img_denoised = deconv			
-
-					deconvN = imf.normalizar(img_denoised) #Se normaliza la matriz 
-					#deconvN = imf.normalizar(deconv) #Se normaliza la matriz 
+						img_denoised = deconv				
 					
+					deconvN = imf.normalizar(img_denoised) #The matrix is normalized
 					deconv_list[z,c,:,:]=deconvN
 					bar.next()
 				bar.finish()
 	if(img.ndim==5):
 		for c in range(img.shape[0]):
 			for z in range(img.shape[1]):
-				deconv= deconvolutionRGB(img[z,c,:,:,:],psf[z,c,:,:,:], iterations) #Funcion de deconvolucion de imagenes
+				deconv= deconvolutionRGB(img[z,c,:,:,:],psf[z,c,:,:,:], iterations) #Image deconvolution function
 				deconv_list[z,c,:,:,:]=deconv
 			print('Channel ',c+1,' deconvolved')	
 	return deconv_list
@@ -95,16 +80,21 @@ def deconvolutionRGB(img,psf,iterations,weight):
 	"""Performs deconvolution of a RGB file"""
 	imgG=imf.escalaGrises(img)
 	img_denoised = imf.denoisingTV(imgG,weight)
-	deconv=deconvolveTF(img_denoised, psf, iterations) #Funcion de deconvolucion de imagenes
+	deconv=deconvolveTF(img_denoised, psf, iterations) #Image deconvolution function
 	deconvN=imf.normalizar(deconv)
 	deconvC=imf.elegirCanal('r',deconv)
 	return deconvC
 	
-def deconvolution1Frame(img,psf,iterations):
+def deconvolution1Frame(img,psf,iterations,weight):
 	"""Performs deconvolution of a matrix"""
-	img_denoised = imf.denoisingTV(imgG,weight)
-	deconv=deconvolveTF(img_denoised, psf, iterations) #Funcion de deconvolucion de imagenes
-	deconvN=imf.normalizar(deconv)
+	print('psf max:',psf.max())
+	deconvN=np.zeros(img.shape,  dtype="int16")
+	deconv=deconvolveTF(img, psf, iterations) #Image deconvolution function
+	if(weight!=0):
+		img_denoised = imf.denoisingTV(deconv,weight)
+	else: 
+		img_denoised = deconv	
+	deconvN=imf.normalizar(np.uint8(img_denoised))
 	return deconvN
 	
 
@@ -113,82 +103,35 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	global message
 	to=time()
 
-	path = os.path.dirname(os.path.realpath(sys.argv[0])) #Direcctorio donde se almacenara el resultado
+	path = os.path.dirname(os.path.realpath(sys.argv[0])) #Working directory
 	savepath = os.path.join(path,'deconvolutions/Deconvolution_'+nameFile.split('.')[0]+' i-'+str(i)+' w-'+str(weight)+'.tif')
 	tifffile.imsave(path + '/deconvolutions/'+nameFile.split('.')[0]+'_normalized.tif', np.uint16(img_tensor*(65535/img_tensor.max())), imagej=True)
 	
-	if(img_tensor.ndim>2):
-		print(img_tensor.shape)
-		print(psf_tensor.shape)
-		if(imf.validatePSF(img_tensor,psf_tensor)):
-			message = '\nStarting deconvolution'
-			print(message)
-			if(img_tensor.ndim==2):
-				tiffdeconv = deconvolution1Frame(img_tensor,psf_tensor,i,weight)
-			if(img_tensor.ndim==3):
-				if(imf.istiffRGB(img_tensor.shape)):
-					tiffdeconv = deconvolutionRGB(img_tensor,psf_tensor,i,weight)
-				else:
-					tiffdeconv = deconvolutionTiff(img_tensor,psf_tensor,i,weight)
-			if(img_tensor.ndim==4):
-				tiffdeconv = deconvolutionTiff(img_tensor,psf_tensor,i,weight)
+	print(img_tensor.shape)
+	print(psf_tensor.shape)
+	message = '\nStarting deconvolution'
+	print(message)
+	if(img_tensor.ndim==2):
+		tiffdeconv = deconvolution1Frame(img_tensor,psf_tensor,i,weight)
+	if(img_tensor.ndim==3):
+		if(imf.istiffRGB(img_tensor.shape)):
+			tiffdeconv = deconvolutionRGB(img_tensor,psf_tensor,i,weight)
 		else:
-			message = 'Wrong psf dimention, please enter a valid psf'
-			print(message)
-			exit()
-			
-		deconvolution_matrix = np.uint16(tiffdeconv)
-			
-		tifffile.imsave(savepath, deconvolution_matrix, imagej=True)
-		#tifffile.imsave(savepath, np.uint16(imf.normalizar(img_tensor)), imagej=True)
-		message = 'Deconvolution successful, end of execution'
-		print(message)
-		it.infoFile['z'] = deconvolution_matrix.shape[0]
-		it.infoFile['c'] = deconvolution_matrix.shape[1]
-		it.infoFile['x'] = deconvolution_matrix.shape[2]
-		it.infoFile['y'] = deconvolution_matrix.shape[3]
+			tiffdeconv = deconvolutionTiff(img_tensor,psf_tensor,i,weight)
+	if(img_tensor.ndim==4):
+		tiffdeconv = deconvolutionTiff(img_tensor,psf_tensor,i,weight)
+		it.infoFile['z'], it.infoFile['c'], it.infoFile['x'], it.infoFile['y']  = tiffdeconv.shape
 		
-	else:
-		if(extImage=='.tif'):
-			print('Ey estoy aqui')
-			deconv=deconvolution1Frame(img,psf,i)
-		if(extImage=='.jpg' or extImage=='.png' or extImage=='.bmp'):
-			if(extPSF=='.jpg' or extPSF=='.png' or extPSF=='.bmp'):
-				img = imf.imgReadCv2(imgpath) #Leemos la imagen a procesar 
-				psf = imf.imgReadCv2(psfpath) #Leemos la psf de la imagen
-				psf=imf.escalaGrises(psf)
-				message = '\nFiles are supported\nStarting deconvolution'
-				print(message)
-				it.statusbar['text']=message
-				sleep(1)
-				message = "\nProcessing: "+nameFile+extImage
-				it.statusbar['text']=message
-				sleep(1)
-				bar = Bar(message, max=1)
-				print('\n')
-				if(img.ndim>1):
-					#warnings.filterwarnings('ignore', '.*',)
-					deconv=deconvolutionRGB(img,psf,i,weight)
-					bar.next()
-					bar.finish()
-				else:
-					deconv=deconvolution1Frame(img,psf,i)
-				#imf.guardarImagen(os.path.join(savepath,'\Deconvolution_'+nameFile+'.bmp'),deconv)
-				imf.guardarImagen(os.getcwd()+'\Deconvolutions\Deconvolution_'+nameFile+'.bmp',deconv)
-				#print(savepath,'\Deconvolution_'+nameFile+'.bmp')
-				#bar.finish()
-				message = 'Deconvolution successful, end of execution'
-				print(message)
-				it.statusbar['text']=message
-				sleep(1)
-		else:
-			message = 'The file extension is not valid'
-			print(message)
+	deconvolution_matrix = np.uint16(tiffdeconv)
+		
+	tifffile.imsave(savepath, deconvolution_matrix, imagej=True)
+	message = 'Deconvolution successful, end of execution'
+	print(message)
+		
 	tf=time()
 	tt=tf-to
 	print("Runtime: ",tt/60, "minutes")
 	#it.statusbar['text']="Runtime: "+str(tt/60)+"minutes"
-	sleep(1)
 	message = ''
 	np.save('info.npy', it.infoFile)
 	return deconvolution_matrix
