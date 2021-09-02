@@ -40,7 +40,7 @@ infoFile = {}
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""
 	global file, tensor_img, panelImg
-	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Seleccione archivo', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp')))
+	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp')))
 	if(len(file)>0):
 		filesPath.append(file)
 		nameFile = file.split('/')[len(file.split('/'))-1]
@@ -101,7 +101,7 @@ def saveFileEvent():
 	if(image.ndim==4):
 		savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
 		if (savepath!=''):
-			tifffile.imsave(savepath, np.uint16(image), imagej=True)
+			tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
 			print('Saved file: ',savepath)
 			opcSF.destroy()
 	if(image.ndim==3):
@@ -124,7 +124,7 @@ def createWindowMain():
 	# Asigna un color de fondo a la ventana. 
 	mainWindow.configure(bg = 'beige')
 	# Asigna un título a la ventana
-	mainWindow.title('IFC SuperResolution')
+	mainWindow.title('IFC Microscopy')
 	mainWindow.resizable(width=False,height=False)
 	#return mainWindow
 	
@@ -171,7 +171,7 @@ def createStringVar():
 def createStatusBar():
 	"""This function creates a status bar"""
 	global statusbar
-	statusbar = Label(mainWindow, text='IFC SuperResolution v0.0.11', bd=1, relief=SUNKEN, anchor=W)
+	statusbar = Label(mainWindow, text='IFC Microscopy v0.6.22', bd=1, relief=SUNKEN, anchor=W)
 	statusbar.pack(side=BOTTOM, fill=X)
 	return statusbar
 	

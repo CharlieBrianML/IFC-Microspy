@@ -91,7 +91,7 @@ def deconvolution_event():
 	try:
 		tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,int(entryIterations.get()),int(entryWeight.get()), it.file.split('/')[len(it.file.split('/'))-1], metadata)
 		deconvimg = it.NewWindow('Deconvolution'+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get())
-		it.windows_img.append(venImg)
+		it.windows_img.append(deconvimg)
 		deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
 	except AttributeError:
 		messagebox.showinfo(message='There are empty parameters, please check')
