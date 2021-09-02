@@ -20,12 +20,22 @@ datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'S
 '[Channel 1 Parameters] ExcitationWavelength', '[Channel 2 Parameters] ExcitationWavelength', '[Channel 3 Parameters] ExcitationWavelength',
 '[Channel 4 Parameters] ExcitationWavelength', '[Reference Image Parameter] HeightConvertValue', '[Reference Image Parameter] WidthConvertValue', 
 '[Channel 1 Parameters] EmissionWavelength', '[Channel 2 Parameters] EmissionWavelength', '[Channel 3 Parameters] EmissionWavelength','[Channel 4 Parameters] EmissionWavelength',
-'[Reference Image Parameter] HeightUnit', '[Axis 3 Parameters Common] PixUnit', '[Axis 3 Parameters Common] EndPosition', '[Axis 3 Parameters Common] StartPosition')
+'[Reference Image Parameter] HeightUnit', '[Axis 3 Parameters Common] PixUnit', '[Axis 3 Parameters Common] EndPosition', '[Axis 3 Parameters Common] StartPosition',
+'[Axis 3 Parameters Common] MaxSize', '[Axis 0 Parameters Common] MaxSize')
 
 def readTiff(fileTiff):
 	"""Function that reads a .tif file"""
-	img = io.imread(fileTiff)
-	return img
+	matrix = io.imread(fileTiff)
+	
+	if(matrix.ndim==4):
+		import numpy as np
+		matrix_aux=np.zeros((matrix.shape[0],matrix.shape[3],matrix.shape[1],matrix.shape[2]))
+		for c in range(matrix.shape[3]):
+			for z in range(matrix.shape[0]):
+				matrix_aux[z,c,:,:] = matrix[z,:,:,c]
+	else:
+		matrix_aux = matrix			
+	return matrix_aux
 	
 def imgtoTiff(imgs,savepath):
 	"""Function that converts a multidimensional array to a .tif file"""
@@ -47,7 +57,7 @@ def metadata_format(metadata):
 	"""Formats metadata extracted from a .tif file"""
 	metadata_dic = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 	'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
-	'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0}}
+	'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0,'MaxSize':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0, 'MaxSize':0.0}}
 
 	metadata_dic['Channel 1 Parameters']['ExcitationWavelength'] = float(metadata['[Channel1Parameters]ExcitationWavelength'])
 	metadata_dic['Channel 2 Parameters']['ExcitationWavelength'] = float(metadata['[Channel2Parameters]ExcitationWavelength'])
@@ -63,6 +73,8 @@ def metadata_format(metadata):
 	metadata_dic['refr_index'] = 1.5
 	metadata_dic['Axis 3 Parameters Common']['EndPosition'] = float(metadata['[Axis3ParametersCommon]EndPosition'])
 	metadata_dic['Axis 3 Parameters Common']['StartPosition'] = float(metadata['[Axis3ParametersCommon]StartPosition'])
+	metadata_dic['Axis 3 Parameters Common']['MaxSize'] = float(metadata['[Axis3ParametersCommon]MaxSize'])
+	metadata_dic['Axis 0 Parameters Common']['MaxSize'] = float(metadata['[Axis0ParametersCommon]MaxSize'])
 	metadata_dic['Axis 0 Parameters Common']['EndPosition'] = float(metadata['[ReferenceImageParameter]HeightConvertValue'])
 	return metadata_dic
 

@@ -28,4 +28,6 @@ def get_matrix_oib(filename):
 		for c in range(matrix.shape[0]):
 			for z in range(matrix.shape[1]):
 				matrix_aux[z,c,:,:] = matrix[c,z,:,:]
+	else:
+		matrix_aux = matrix
 	return matrix_aux
