@@ -40,7 +40,7 @@ infoFile = {}
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""
 	global file, tensor_img, panelImg
-	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp')))
+	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('bmp files','*.jpg')))
 	if(len(file)>0):
 		filesPath.append(file)
 		nameFile = file.split('/')[len(file.split('/'))-1]
@@ -49,20 +49,14 @@ def openFile():
 			tensor_img = tif.readTiff(file)
 			
 			if(tensor_img.ndim==4):
-				import numpy as np
-				tensor_img_mod=np.zeros((tensor_img.shape[3],tensor_img.shape[0],tensor_img.shape[1],tensor_img.shape[2]))
-				for c in range(tensor_img.shape[3]):
-					for z in range(tensor_img.shape[0]):
-						tensor_img_mod[c,z,:,:] = tensor_img[z,:,:,c]
-				print(tensor_img.shape)
-				
 				venImg = NewWindow(nameFile)
-				windows_img.append(venImg)
-				tensor_img = venImg.desplay_image(nameFile, tensor_img_mod)		
+				tensor_img = venImg.desplay_image(nameFile, tensor_img)
+				windows_img.append(venImg)		
 			else:
 				venImg = NewWindow(nameFile)
-				windows_img.append(venImg)
 				venImg.placeImage(tensor_img)
+				venImg.tensor_img = tensor_img
+				windows_img.append(venImg)
 				
 		elif(os.path.splitext(nameFile)[1]=='.oib'):
 			print('File: ', nameFile)
@@ -205,12 +199,8 @@ class NewWindow:
 		self.window.destroy()
 		
 	def placeImage(self,img):
-		#global img
-		#filesName.append(file.split('/')[len(file.split('/'))-1])
-
 		resized = self.resize_image_percent(img, 60)
 		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
-		#self.img = PhotoImage(Image.open(file))
 		self.panel = Label(self.window, image = self.img)
 		self.panel.image = self.img
 		self.panel.pack()

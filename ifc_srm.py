@@ -33,53 +33,84 @@ def psf_parameters():
 	if (it.file.split('.')[1]=='oib'):
 		metadata = oib.getMetadata(it.file)
 	elif (it.file.split('.')[1]=='tif'):
-		metadata = tif.getMetadata(it.file)
-		if (len(metadata)==0):
+		try:
+			metadata = tif.getMetadata(it.file)
+			if (len(metadata)==0):
+				metadata = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
+				'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
+				'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0}}
+			print(metadata)
+		except KeyError:
+			messagebox.showinfo(message='No metadata found, please fill in the parameters manually')
 			metadata = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 			'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
-			'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0}}
-		print(metadata)
+			'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0,'MaxSize':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0,'MaxSize':0.0}}
+			metadata[ 'Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
+			metadata[ 'Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]
 	else:
 		metadata = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 		'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
-		'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0}}
+		'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0,'MaxSize':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0,'MaxSize':0.0}}
+		metadata[ 'Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
+		metadata[ 'Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]		
 		
 	opcPsf = it.NewWindow(it.file.split('/')[len(it.file.split('/'))-1],'300x550') #Objeto de la clase NewWindow
 	
-	opcPsf.createLabel('PSF parameters ',20,70)
-	opcPsf.createLabel('Ex_wavelenCh1:                       [nm]',20,100)
-	opcPsf.createLabel('Ex_wavelenCh2:                       [nm]',20,130)
-	opcPsf.createLabel('Ex_wavelenCh3:                       [nm]',20,160)
-	opcPsf.createLabel('Ex_wavelenCh4:                       [nm]',20,190)
-	
-	opcPsf.createLabel('Em_wavelenCh1:                     [nm] ',20,220)
-	opcPsf.createLabel('Em_wavelenCh2:                     [nm]',20,250)
-	opcPsf.createLabel('Em_wavelenCh3:                     [nm]',20,280)
-	opcPsf.createLabel('Em_wavelenCh4:                     [nm]',20,310)
-	
-	opcPsf.createLabel('Num_aperture:',20,340)
-	opcPsf.createLabel('Pinhole_radius:                         [um]',20,370)
-	opcPsf.createLabel('Magnification:',20,400)
-	opcPsf.createLabel('Refr_index:',20,430)
-	opcPsf.createLabel('Dim_z:                                       [um]',20,460)
-	opcPsf.createLabel('Dim_xy:                                       [um]',20,490)
-	
-	entryex_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,100)
-	entryex_wavelench2 = opcPsf.createEntry(metadata['Channel 2 Parameters']['ExcitationWavelength'],160,130)
-	entryex_wavelench3 = opcPsf.createEntry(metadata['Channel 3 Parameters']['ExcitationWavelength'],160,160)
-	entryex_wavelench4 = opcPsf.createEntry(metadata['Channel 4 Parameters']['ExcitationWavelength'],160,190)
-	
-	entryem_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['EmissionWavelength'],160,220)
-	entryem_wavelench2 = opcPsf.createEntry(metadata['Channel 2 Parameters']['EmissionWavelength'],160,250)
-	entryem_wavelench3 = opcPsf.createEntry(metadata['Channel 3 Parameters']['EmissionWavelength'],160,280)
-	entryem_wavelench4 = opcPsf.createEntry(metadata['Channel 4 Parameters']['EmissionWavelength'],160,310)
-	
-	entrynum_aperture = opcPsf.createEntry(metadata['num_aperture'],160,340)
-	entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,370)
-	entrymagnification = opcPsf.createEntry(metadata['magnification'],160,400)
-	entryrefr_index = opcPsf.createEntry(metadata['refr_index'],160,430)
-	entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,460)
-	entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,490)
+	if (it.windows_img[-1].tensor_img.ndim==4):
+		opcPsf.createLabel('PSF parameters ',20,70)
+		opcPsf.createLabel('Ex_wavelenCh1:                       [nm]',20,100)
+		opcPsf.createLabel('Ex_wavelenCh2:                       [nm]',20,130)
+		opcPsf.createLabel('Ex_wavelenCh3:                       [nm]',20,160)
+		opcPsf.createLabel('Ex_wavelenCh4:                       [nm]',20,190)
+		
+		opcPsf.createLabel('Em_wavelenCh1:                     [nm] ',20,220)
+		opcPsf.createLabel('Em_wavelenCh2:                     [nm]',20,250)
+		opcPsf.createLabel('Em_wavelenCh3:                     [nm]',20,280)
+		opcPsf.createLabel('Em_wavelenCh4:                     [nm]',20,310)
+		
+		opcPsf.createLabel('Num_aperture:',20,340)
+		opcPsf.createLabel('Pinhole_radius:                         [um]',20,370)
+		opcPsf.createLabel('Magnification:',20,400)
+		opcPsf.createLabel('Refr_index:',20,430)
+		opcPsf.createLabel('Dim_z:                                       [um]',20,460)
+		opcPsf.createLabel('Dim_xy:                                       [um]',20,490)
+		
+		entryex_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,100)
+		entryex_wavelench2 = opcPsf.createEntry(metadata['Channel 2 Parameters']['ExcitationWavelength'],160,130)
+		entryex_wavelench3 = opcPsf.createEntry(metadata['Channel 3 Parameters']['ExcitationWavelength'],160,160)
+		entryex_wavelench4 = opcPsf.createEntry(metadata['Channel 4 Parameters']['ExcitationWavelength'],160,190)
+		
+		entryem_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['EmissionWavelength'],160,220)
+		entryem_wavelench2 = opcPsf.createEntry(metadata['Channel 2 Parameters']['EmissionWavelength'],160,250)
+		entryem_wavelench3 = opcPsf.createEntry(metadata['Channel 3 Parameters']['EmissionWavelength'],160,280)
+		entryem_wavelench4 = opcPsf.createEntry(metadata['Channel 4 Parameters']['EmissionWavelength'],160,310)
+		
+		entrynum_aperture = opcPsf.createEntry(metadata['num_aperture'],160,340)
+		entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,370)
+		entrymagnification = opcPsf.createEntry(metadata['magnification'],160,400)
+		entryrefr_index = opcPsf.createEntry(metadata['refr_index'],160,430)
+		entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,460)
+		entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,490)
+	else: 
+		opcPsf.window.geometry('300x350')
+		opcPsf.createLabel('PSF parameters ',20,70)
+		opcPsf.createLabel('Ex_wavelenCh1:                        [nm]',20,100)
+		opcPsf.createLabel('Em_wavelenCh1:                      [nm] ',20,130)
+		
+		opcPsf.createLabel('Num_aperture:',20,160)
+		opcPsf.createLabel('Pinhole_radius:                          [um]',20,190)
+		opcPsf.createLabel('Magnification:',20,220)
+		opcPsf.createLabel('Refr_index:',20,250)
+		opcPsf.createLabel('Dim_xy:                                        [um]',20,280)
+		
+		entryex_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,100)
+		entryem_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['EmissionWavelength'],160,130)
+		
+		entrynum_aperture = opcPsf.createEntry(metadata['num_aperture'],160,160)
+		entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,190)
+		entrymagnification = opcPsf.createEntry(metadata['magnification'],160,220)
+		entryrefr_index = opcPsf.createEntry(metadata['refr_index'],160,250)
+		entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,280)			
 	
 	opcPsf.createLabel('PSF type: ',20,10)
 	dropdownPSF = opcPsf.createCombobox(20,40)
@@ -87,36 +118,50 @@ def psf_parameters():
 
 def deconvolution_event():
 	global entryIterations, entryWeight, dropdownImg, metadata, tensor_deconv, img_tensor
-	img_tensor = oib.get_matrix_oib(it.file)
+	img_tensor = it.windows_img[-1].tensor_img
 	try:
 		tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,int(entryIterations.get()),int(entryWeight.get()), it.file.split('/')[len(it.file.split('/'))-1], metadata)
 		deconvimg = it.NewWindow('Deconvolution'+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get())
 		it.windows_img.append(deconvimg)
-		deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
+		if(tensor_deconv.ndim==4):
+			deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
+		else:
+			deconvimg.placeImage(tensor_deconv)
+			deconvimg.tensor_img = tensor_deconv
 	except AttributeError:
 		messagebox.showinfo(message='There are empty parameters, please check')
 	
 def createpsf_event():
 	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
 	global multipsf, opcPsf, entryIterations, entryWeight, dropdownPSF, metadata, entryrefr_index
-	metadata['Channel 1 Parameters']['ExcitationWavelength'] = float(entryex_wavelench1.get())
-	metadata['Channel 2 Parameters']['ExcitationWavelength'] = float(entryex_wavelench2.get())
-	metadata['Channel 3 Parameters']['ExcitationWavelength'] = float(entryex_wavelench3.get())
-	metadata['Channel 4 Parameters']['ExcitationWavelength'] = float(entryex_wavelench4.get())
-	metadata['Channel 1 Parameters']['EmissionWavelength'] = float(entryem_wavelench1.get())
-	metadata['Channel 2 Parameters']['EmissionWavelength'] = float(entryem_wavelench2.get())
-	metadata['Channel 3 Parameters']['EmissionWavelength'] = float(entryem_wavelench3.get())
-	metadata['Channel 4 Parameters']['EmissionWavelength'] = float(entryem_wavelench4.get())
-	metadata['num_aperture'] = float(entrynum_aperture.get())
-	metadata['pinhole_radius'] = float(entrypinhole_radius.get())
-	metadata['magnification'] = float(entrymagnification.get())
-	metadata['refr_index'] = float(entryrefr_index.get())
-	metadata['Axis 3 Parameters Common']['EndPosition'] = float(entrydimz.get())
-	metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
+	
+	if (it.windows_img[-1].tensor_img.ndim==4):
+		metadata['Channel 1 Parameters']['ExcitationWavelength'] = float(entryex_wavelench1.get())
+		metadata['Channel 2 Parameters']['ExcitationWavelength'] = float(entryex_wavelench2.get())
+		metadata['Channel 3 Parameters']['ExcitationWavelength'] = float(entryex_wavelench3.get())
+		metadata['Channel 4 Parameters']['ExcitationWavelength'] = float(entryex_wavelench4.get())
+		metadata['Channel 1 Parameters']['EmissionWavelength'] = float(entryem_wavelench1.get())
+		metadata['Channel 2 Parameters']['EmissionWavelength'] = float(entryem_wavelench2.get())
+		metadata['Channel 3 Parameters']['EmissionWavelength'] = float(entryem_wavelench3.get())
+		metadata['Channel 4 Parameters']['EmissionWavelength'] = float(entryem_wavelench4.get())
+		metadata['num_aperture'] = float(entrynum_aperture.get())
+		metadata['pinhole_radius'] = float(entrypinhole_radius.get())
+		metadata['magnification'] = float(entrymagnification.get())
+		metadata['refr_index'] = float(entryrefr_index.get())
+		metadata['Axis 3 Parameters Common']['EndPosition'] = float(entrydimz.get())
+		metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
+	else: 
+		metadata['Channel 1 Parameters']['ExcitationWavelength'] = float(entryex_wavelench1.get())
+		metadata['Channel 1 Parameters']['EmissionWavelength'] = float(entryem_wavelench1.get())
+		metadata['num_aperture'] = float(entrynum_aperture.get())
+		metadata['pinhole_radius'] = float(entrypinhole_radius.get())
+		metadata['magnification'] = float(entrymagnification.get())
+		metadata['refr_index'] = float(entryrefr_index.get())
+		metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())			
 	psftype = dropdownPSF.current()
 	opcPsf.destroy()
 	
-	multipsf = cpsf.shape_psf(oib.get_matrix_oib(it.file),metadata, psftype)
+	multipsf = cpsf.shape_psf(it.windows_img[-1].tensor_img,metadata, psftype)
 	
 	opcDeconv = it.NewWindow('Deconv parameters','300x200') #Objeto de la clase NewWindow
 	
