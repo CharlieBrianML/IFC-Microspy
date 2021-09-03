@@ -45,35 +45,35 @@ def psf_parameters():
 			metadata = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 			'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
 			'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0,'MaxSize':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0,'MaxSize':0.0}}
-			metadata[ 'Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
-			metadata[ 'Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]
+			metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
+			metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]
 	else:
 		metadata = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 		'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
 		'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0,'MaxSize':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0,'MaxSize':0.0}}
-		metadata[ 'Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
-		metadata[ 'Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]		
+		metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
+		metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]		
 		
 	opcPsf = it.NewWindow(it.file.split('/')[len(it.file.split('/'))-1],'300x550') #Objeto de la clase NewWindow
 	
 	if (it.windows_img[-1].tensor_img.ndim==4):
 		opcPsf.createLabel('PSF parameters ',20,70)
-		opcPsf.createLabel('Ex_wavelenCh1:                       [nm]',20,100)
-		opcPsf.createLabel('Ex_wavelenCh2:                       [nm]',20,130)
-		opcPsf.createLabel('Ex_wavelenCh3:                       [nm]',20,160)
-		opcPsf.createLabel('Ex_wavelenCh4:                       [nm]',20,190)
+		opcPsf.createLabel('Ex_wavelenCh1:                        [nm]',20,100)
+		opcPsf.createLabel('Ex_wavelenCh2:                        [nm]',20,130)
+		opcPsf.createLabel('Ex_wavelenCh3:                        [nm]',20,160)
+		opcPsf.createLabel('Ex_wavelenCh4:                        [nm]',20,190)
 		
-		opcPsf.createLabel('Em_wavelenCh1:                     [nm] ',20,220)
-		opcPsf.createLabel('Em_wavelenCh2:                     [nm]',20,250)
-		opcPsf.createLabel('Em_wavelenCh3:                     [nm]',20,280)
-		opcPsf.createLabel('Em_wavelenCh4:                     [nm]',20,310)
+		opcPsf.createLabel('Em_wavelenCh1:                      [nm] ',20,220)
+		opcPsf.createLabel('Em_wavelenCh2:                      [nm]',20,250)
+		opcPsf.createLabel('Em_wavelenCh3:                      [nm]',20,280)
+		opcPsf.createLabel('Em_wavelenCh4:                      [nm]',20,310)
 		
 		opcPsf.createLabel('Num_aperture:',20,340)
-		opcPsf.createLabel('Pinhole_radius:                         [um]',20,370)
+		opcPsf.createLabel('Pinhole_radius:                          [um]',20,370)
 		opcPsf.createLabel('Magnification:',20,400)
 		opcPsf.createLabel('Refr_index:',20,430)
-		opcPsf.createLabel('Dim_z:                                       [um]',20,460)
-		opcPsf.createLabel('Dim_xy:                                       [um]',20,490)
+		opcPsf.createLabel('Dim_z:                                        [um]',20,460)
+		opcPsf.createLabel('Dim_xy:                                        [um]',20,490)
 		
 		entryex_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,100)
 		entryex_wavelench2 = opcPsf.createEntry(metadata['Channel 2 Parameters']['ExcitationWavelength'],160,130)
@@ -125,6 +125,12 @@ def deconvolution_event():
 		it.windows_img.append(deconvimg)
 		if(tensor_deconv.ndim==4):
 			deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
+		if(tensor_deconv.ndim==3):
+			import imageFunctions as imf
+			if(imf.istiffRGB(tensor_deconv.shape)):
+				deconvimg.placeImage(np.uint8(tensor_deconv))
+			else: 
+				deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
 		else:
 			deconvimg.placeImage(tensor_deconv)
 			deconvimg.tensor_img = tensor_deconv
@@ -157,25 +163,29 @@ def createpsf_event():
 		metadata['pinhole_radius'] = float(entrypinhole_radius.get())
 		metadata['magnification'] = float(entrymagnification.get())
 		metadata['refr_index'] = float(entryrefr_index.get())
-		metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())			
-	psftype = dropdownPSF.current()
-	opcPsf.destroy()
-	
-	multipsf = cpsf.shape_psf(it.windows_img[-1].tensor_img,metadata, psftype)
-	
-	opcDeconv = it.NewWindow('Deconv parameters','300x200') #Objeto de la clase NewWindow
-	
-	opcDeconv.createLabel('Image: ',20,20)
-	opcDeconv.createLabel('PSF: ',20,50)
-	opcDeconv.createLabel('Iterations: ',20,80)
-	opcDeconv.createLabel('Weight TV: ',20,110)
-	
-	entryimg = opcDeconv.createEntry(it.file.split('/')[len(it.file.split('/'))-1],110,20, 25,True)
-	entrypsf = opcDeconv.createEntry('psf_'+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0],110,50,25, True)
-	
-	entryIterations = opcDeconv.createEntry('',110,80,25)
-	entryWeight = opcDeconv.createEntry('',110,110,25)
-	opcDeconv.createButtonXY('Deconvolution '+entryIterations.get()+' '+entryWeight.get(), deconvolution_event, 100, 140)
+		metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
+		
+	if ((metadata['num_aperture']/metadata['refr_index'])<=1.0):		
+		psftype = dropdownPSF.current()
+		opcPsf.destroy()
+		
+		multipsf = cpsf.shape_psf(it.windows_img[-1].tensor_img,metadata, psftype)
+		
+		opcDeconv = it.NewWindow('Deconv parameters','300x200') #Objeto de la clase NewWindow
+		
+		opcDeconv.createLabel('Image: ',20,20)
+		opcDeconv.createLabel('PSF: ',20,50)
+		opcDeconv.createLabel('Iterations: ',20,80)
+		opcDeconv.createLabel('Weight TV: ',20,110)
+		
+		entryimg = opcDeconv.createEntry(it.file.split('/')[len(it.file.split('/'))-1],110,20, 25,True)
+		entrypsf = opcDeconv.createEntry('psf_'+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0],110,50,25, True)
+		
+		entryIterations = opcDeconv.createEntry('',110,80,25)
+		entryWeight = opcDeconv.createEntry('',110,110,25)
+		opcDeconv.createButtonXY('Deconvolution '+entryIterations.get()+' '+entryWeight.get(), deconvolution_event, 100, 140)
+	else: 
+		messagebox.showinfo(message='Quotient of the numeric aperture ' +str(metadata['num_aperture'])+ ' and refractive index ' +str(metadata['refr_index'])+ ' is greater than 1.0')
 	
 def neural_network_event():
 	global tensor_deconv

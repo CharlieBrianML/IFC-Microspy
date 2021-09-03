@@ -40,7 +40,7 @@ infoFile = {}
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""
 	global file, tensor_img, panelImg
-	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('bmp files','*.jpg')))
+	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('jpg files','*.jpg')))
 	if(len(file)>0):
 		filesPath.append(file)
 		nameFile = file.split('/')[len(file.split('/'))-1]
@@ -69,9 +69,12 @@ def openFile():
 			
 		else:
 			import cv2
+			print('File: ', nameFile)
 			matrix_img = cv2.imread(file)
 			venImg = NewWindow(nameFile)
 			venImg.placeImage(matrix_img)
+			venImg.tensor_img = matrix_img
+			windows_img.append(venImg)
 	
 def saveFile():
 	"""This function save files of type .oib .tif and .bmp"""

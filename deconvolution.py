@@ -78,12 +78,17 @@ def deconvolutionTiff(img,psf,iterations,weight):
 	
 def deconvolutionRGB(img,psf,iterations,weight):
 	"""Performs deconvolution of a RGB file"""
-	imgG=imf.escalaGrises(img)
-	img_denoised = imf.denoisingTV(imgG,weight)
-	deconv=deconvolveTF(img_denoised, psf, iterations) #Image deconvolution function
-	deconvN=imf.normalizar(deconv)
-	deconvC=imf.elegirCanal('r',deconv)
-	return deconvC
+	deconvN=np.zeros(img.shape)
+	for crgb in range(3):
+		deconv=deconvolveTF(img[:,:,crgb], psf[:,:,crgb], iterations) #Image deconvolution function
+		
+		if(weight!=0):
+			img_denoised = imf.denoisingTV(deconv, weight)
+		else:
+			img_denoised = deconv		
+		
+		deconvN[:,:,crgb]=imf.normalizar(img_denoised)
+	return deconvN
 	
 def deconvolution1Frame(img,psf,iterations,weight):
 	"""Performs deconvolution of a matrix"""

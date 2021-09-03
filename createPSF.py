@@ -160,11 +160,18 @@ def shape_psf(tensor, metadata, psftype):
 		# imsave('psf_vol.tif', np.uint8(multipsf),  metadata = {'axes':'TZCYX'}, imagej=True)
 		#dv.deconvolutionMain(tensor,multipsf,2,20)
 	if (dimtensor==3):
+		import imageFunctions as imf
 		multipsf = np.zeros(tensor.shape)
 		metadata['Axis 3 Parameters Common']['MaxSize']=0.0
-		for c in range(tensor.shape[0]):
-			print('\nGenerating psf channel: ',c)
-			multipsf[c,:,:] = constructpsf(metadata, c+1, False, psftype)
+		if(imf.istiffRGB(tensor.shape)):
+			print('Generating psf: ')
+			psf = constructpsf(metadata, 1, False, psftype)
+			for crgb in range(3):
+				multipsf[:,:,crgb] = psf
+		else:	
+			for c in range(tensor.shape[0]):
+				print('\nGenerating psf channel: ',c)
+				multipsf[c,:,:] = constructpsf(metadata, c+1, False, psftype)	
 	
 	if (dimtensor==2):
 		multipsf = np.zeros(tensor.shape)
