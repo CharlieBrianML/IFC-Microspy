@@ -109,53 +109,57 @@ def nn(dev_img, img_tensor):
 	import interfaceTools as it
 	global model
 	
-	if not(os.path.isdir('training_deconv')) and not(os.path.isdir('training_set')):
-		os.mkdir('training_deconv')
-		os.mkdir('training_set')
-		print(dev_img.shape)
-		print(img_tensor.shape)
-		di = np.zeros((dev_img.shape[2],dev_img.shape[3],3))
-		it = np.zeros((img_tensor.shape[2],img_tensor.shape[3],3))
+	if(len(it.windows_img)>0):
+		if not(os.path.isdir('training_deconv')) and not(os.path.isdir('training_set')):
+			os.mkdir('training_deconv')
+			os.mkdir('training_set')
+			print(dev_img.shape)
+			print(img_tensor.shape)
+			di = np.zeros((dev_img.shape[2],dev_img.shape[3],3))
+			it = np.zeros((img_tensor.shape[2],img_tensor.shape[3],3))
+			
+			for c in range(dev_img.shape[1]):
+				for z in range(dev_img.shape[0]):
+					di[:,:,0] = np.uint8(dev_img[z,c,:,:])
+					di[:,:,1] = np.uint8(dev_img[z,c,:,:])
+					di[:,:,2] = np.uint8(dev_img[z,c,:,:])
+					cv2.imwrite('training_deconv/'+str(c+1)+'_'+str(z+1)+'.jpg', di)
+					
+			for c in range(img_tensor.shape[0]):
+				for z in range(img_tensor.shape[1]):
+					it[:,:,0] = np.uint8(img_tensor[c,z,:,:])
+					it[:,:,1] = np.uint8(img_tensor[c,z,:,:])
+					it[:,:,2] = np.uint8(img_tensor[c,z,:,:])
+					cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)			
 		
-		for c in range(dev_img.shape[1]):
-			for z in range(dev_img.shape[0]):
-				di[:,:,0] = np.uint8(dev_img[z,c,:,:])
-				di[:,:,1] = np.uint8(dev_img[z,c,:,:])
-				di[:,:,2] = np.uint8(dev_img[z,c,:,:])
-				cv2.imwrite('training_deconv/'+str(c+1)+'_'+str(z+1)+'.jpg', di)
-				
-		for c in range(img_tensor.shape[0]):
-			for z in range(img_tensor.shape[1]):
-				it[:,:,0] = np.uint8(img_tensor[c,z,:,:])
-				it[:,:,1] = np.uint8(img_tensor[c,z,:,:])
-				it[:,:,2] = np.uint8(img_tensor[c,z,:,:])
-				cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)			
-	
-	info = np.load('info.npy', allow_pickle=True).item()
-	img_output = np.zeros((info['z'], info['c'], info['x'], info['y']))
+		info = np.load('info.npy', allow_pickle=True).item()
+		img_output = np.zeros((info['z'], info['c'], info['x'], info['y']))
 
-	imgs_deconv = os.listdir('training_deconv')
-	
-	# Path model 
-	SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
+		imgs_deconv = os.listdir('training_deconv')
+		
+		# Path model 
+		SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
 
-	model = hub.load(SAVED_MODEL_PATH)
-	
-	if not(os.path.isdir('output_NN')):
-		os.mkdir('output_NN')	
+		model = hub.load(SAVED_MODEL_PATH)
+		
+		if not(os.path.isdir('output_NN')):
+			os.mkdir('output_NN')	
 
-	start = time.time()
-	for image in imgs_deconv:
-		fake_image, hr_image = model_NeuralNetwork('training_deconv/'+image)
-		img_array = tensor_to_array(tf.squeeze(fake_image))
-		plt.imsave("output_NN/neural_network_"+image.split('.')[0]+'.png', img_array, cmap='gray')
-		c = int(image.split('.')[0].split('_')[0])-1
-		z = int(image.split('.')[0].split('_')[1])-1
-		print('Processing: ', image, '\tc: ',c,'z: ',z)
-		img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
-	print("Time Taken: %f" % (time.time() - start))	
-	
-	import interfaceTools as it
-	nnimg = it.NewWindow('Neural Network ')
-	it.windows_img.append(nnimg)
-	nnimg.desplay_image('Neural Network ', img_output)
+		start = time.time()
+		for image in imgs_deconv:
+			fake_image, hr_image = model_NeuralNetwork('training_deconv/'+image)
+			img_array = tensor_to_array(tf.squeeze(fake_image))
+			plt.imsave("output_NN/neural_network_"+image.split('.')[0]+'.png', img_array, cmap='gray')
+			c = int(image.split('.')[0].split('_')[0])-1
+			z = int(image.split('.')[0].split('_')[1])-1
+			print('Processing: ', image, '\tc: ',c,'z: ',z)
+			img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
+		print("Time Taken: %f" % (time.time() - start))	
+		
+		import interfaceTools as it
+		nnimg = it.NewWindow('Neural Network ')
+		it.windows_img.append(nnimg)
+		nnimg.desplay_image('Neural Network ', img_output)
+	else:
+		from tkinter import messagebox
+		messagebox.showinfo(message='There is no input parameter')

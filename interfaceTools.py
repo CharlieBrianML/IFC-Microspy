@@ -42,50 +42,57 @@ def openFile():
 	global file, tensor_img, panelImg
 	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('jpg files','*.jpg')))
 	if(len(file)>0):
-		filesPath.append(file)
-		nameFile = file.split('/')[len(file.split('/'))-1]
-		if(os.path.splitext(nameFile)[1]=='.tif'):
-			print('File: ', nameFile)
-			tensor_img = tif.readTiff(file)
-			print(tensor_img.shape)
-			
-			if(tensor_img.ndim==4 or tensor_img.ndim==3):
-				venImg = NewWindow(nameFile)
-				tensor_img = venImg.desplay_image(nameFile, tensor_img)
-				windows_img.append(venImg)	
-			else:
-				venImg = NewWindow(nameFile)
-				venImg.placeImage(tensor_img)
-				venImg.tensor_img = tensor_img
-				windows_img.append(venImg)
+		try:
+			filesPath.append(file)
+			nameFile = file.split('/')[len(file.split('/'))-1]
+			if(os.path.splitext(nameFile)[1]=='.tif'):
+				tensor_img = tif.readTiff(file)
+				from imageFunctions import istiffRGB
+				if(not(istiffRGB(tensor_img.shape))):
+					print('File: ', nameFile)
+					print(tensor_img.shape)
+					
+					if(tensor_img.ndim==4 or tensor_img.ndim==3):
+						venImg = NewWindow(nameFile)
+						tensor_img = venImg.desplay_image(nameFile, tensor_img)
+						windows_img.append(venImg)	
+					else:
+						venImg = NewWindow(nameFile)
+						venImg.placeImage(tensor_img)
+						venImg.tensor_img = tensor_img
+						windows_img.append(venImg)
+					
+			elif(os.path.splitext(nameFile)[1]=='.oib'):
+				print('File: ', nameFile)
+				tensor_img = oib.get_matrix_oib(file)
+				print(tensor_img.shape)
 				
-		elif(os.path.splitext(nameFile)[1]=='.oib'):
-			print('File: ', nameFile)
-			tensor_img = oib.get_matrix_oib(file)
-			print(tensor_img.shape)
-			
-			venImg = NewWindow(nameFile.split('.')[0])
-			tensor_img = venImg.desplay_image(nameFile, tensor_img)
-			windows_img.append(venImg)
-			
-		else:
-			import cv2
-			print('File: ', nameFile)
-			matrix_img = cv2.imread(file)
-			venImg = NewWindow(nameFile)
-			venImg.placeImage(matrix_img)
-			venImg.tensor_img = matrix_img
-			windows_img.append(venImg)
+				venImg = NewWindow(nameFile.split('.')[0])
+				tensor_img = venImg.desplay_image(nameFile, tensor_img)
+				windows_img.append(venImg)
+			else:
+				import cv2
+				print('File: ', nameFile)
+				matrix_img = cv2.imread(file)
+				venImg = NewWindow(nameFile)
+				venImg.placeImage(matrix_img)
+				venImg.tensor_img = matrix_img
+				windows_img.append(venImg)
+		except:
+			messagebox.showinfo(message='Format not supported')				
 	
 def saveFile():
 	"""This function save files of type .oib .tif and .bmp"""
 	global cmbxFile, opcSF
 	print(windows_img)
-	opcSF = NewWindow('Save File','300x100')
-	opcSF.createLabel('What image do you want to save?',20,20)
-	windows_img_names = getNamesWindows()
-	cmbxFile = opcSF.createCombobox2(windows_img_names,20,50)
-	opcSF.createButton('Save', saveFileEvent, 'bottom')
+	if(len(windows_img)>0):
+		opcSF = NewWindow('Save File','300x100')
+		opcSF.createLabel('What image do you want to save?',20,20)
+		windows_img_names = getNamesWindows()
+		cmbxFile = opcSF.createCombobox2(windows_img_names,20,50)
+		opcSF.createButton('Save', saveFileEvent, 'bottom')
+	else: 
+		messagebox.showinfo(message='No file has been opened')
 	
 def saveFileEvent():
 	global cmbxFile, opcSF
@@ -96,17 +103,21 @@ def saveFileEvent():
 	image = windows_img[selected_file].tensor_img
 	namewin = windows_img[selected_file].nameWindow
 	
-	if(image.ndim==4):
-		savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
-		if (savepath!=''):
-			tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
-			print('Saved file: ',savepath)
-			opcSF.destroy()
-	if(image.ndim==3):
-		tifffile.imsave(savepath, image, imagej=True)
-	if(image.ndim==2):	
-		savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
-		cv2.imwrite(savepath, image)
+	try:
+		if(image.ndim==4):
+			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
+			if (savepath!=''):
+				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
+				print('Saved file: ',savepath)
+				opcSF.destroy()
+		if(image.ndim==3):
+			tifffile.imsave(savepath, image, imagej=True)
+		if(image.ndim==2):	
+			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
+			cv2.imwrite(savepath, image)
+	except:
+		messagebox.showinfo(message='Error when trying to save the file, try again')
+		print("Error inesperado:", sys.exc_info()[0])
 		
 def getNamesWindows():
 	names = []
