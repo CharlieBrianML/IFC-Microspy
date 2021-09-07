@@ -45,8 +45,12 @@ def psf_parameters():
 			metadata = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 			'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
 			'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0,'MaxSize':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0,'MaxSize':0.0}}
-			metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
-			metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]
+			if (it.windows_img[-1].tensor_img.ndim>2):
+				metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
+				metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]
+			else:	
+				metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
+				metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]
 	else:
 		metadata = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 		'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
@@ -92,16 +96,17 @@ def psf_parameters():
 		entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,460)
 		entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,490)
 	else: 
-		opcPsf.window.geometry('300x350')
+		opcPsf.window.geometry('300x365')
 		opcPsf.createLabel('PSF parameters ',20,70)
-		opcPsf.createLabel('Ex_wavelenCh1:                        [nm]',20,100)
-		opcPsf.createLabel('Em_wavelenCh1:                      [nm] ',20,130)
+		opcPsf.createLabel('Ex_wavelenCh1:                         [nm]',20,100)
+		opcPsf.createLabel('Em_wavelenCh1:                       [nm] ',20,130)
 		
 		opcPsf.createLabel('Num_aperture:',20,160)
-		opcPsf.createLabel('Pinhole_radius:                          [um]',20,190)
+		opcPsf.createLabel('Pinhole_radius:                           [um]',20,190)
 		opcPsf.createLabel('Magnification:',20,220)
 		opcPsf.createLabel('Refr_index:',20,250)
-		opcPsf.createLabel('Dim_xy:                                        [um]',20,280)
+		opcPsf.createLabel('Dim_z:                                         [um]',20,280)
+		opcPsf.createLabel('Dim_xy:                                         [um]',20,310)
 		
 		entryex_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,100)
 		entryem_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['EmissionWavelength'],160,130)
@@ -110,7 +115,8 @@ def psf_parameters():
 		entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,190)
 		entrymagnification = opcPsf.createEntry(metadata['magnification'],160,220)
 		entryrefr_index = opcPsf.createEntry(metadata['refr_index'],160,250)
-		entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,280)			
+		entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,280)
+		entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,310)	
 	
 	opcPsf.createLabel('PSF type: ',20,10)
 	dropdownPSF = opcPsf.createCombobox(20,40)
@@ -163,6 +169,7 @@ def createpsf_event():
 		metadata['pinhole_radius'] = float(entrypinhole_radius.get())
 		metadata['magnification'] = float(entrymagnification.get())
 		metadata['refr_index'] = float(entryrefr_index.get())
+		metadata['Axis 3 Parameters Common']['EndPosition'] = float(entrydimz.get())
 		metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
 		
 	if ((metadata['num_aperture']/metadata['refr_index'])<=1.0):		

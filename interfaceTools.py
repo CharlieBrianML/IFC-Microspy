@@ -47,11 +47,12 @@ def openFile():
 		if(os.path.splitext(nameFile)[1]=='.tif'):
 			print('File: ', nameFile)
 			tensor_img = tif.readTiff(file)
+			print(tensor_img.shape)
 			
-			if(tensor_img.ndim==4):
+			if(tensor_img.ndim==4 or tensor_img.ndim==3):
 				venImg = NewWindow(nameFile)
 				tensor_img = venImg.desplay_image(nameFile, tensor_img)
-				windows_img.append(venImg)		
+				windows_img.append(venImg)	
 			else:
 				venImg = NewWindow(nameFile)
 				venImg.placeImage(tensor_img)
