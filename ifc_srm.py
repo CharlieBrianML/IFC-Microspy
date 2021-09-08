@@ -228,10 +228,9 @@ def createpsf_event():
 	
 def neural_network_event():
 	global tensor_deconv
-	#from pix2pix import nn
-	#nn(5, tensor_deconv, img_tensor)
 	from sr import nn
-	nn(tensor_deconv, img_tensor)
+	#nn(tensor_deconv, img_tensor)
+	nn(it.windows_img[-1].tensor_img)
 	
 def on_closing():
 	import os

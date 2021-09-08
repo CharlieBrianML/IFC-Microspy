@@ -125,7 +125,6 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 			tiffdeconv = deconvolutionTiff(img_tensor,psf_tensor,i,weight)
 	if(img_tensor.ndim==4):
 		tiffdeconv = deconvolutionTiff(img_tensor,psf_tensor,i,weight)
-		it.infoFile['z'], it.infoFile['c'], it.infoFile['x'], it.infoFile['y']  = tiffdeconv.shape
 		
 	deconvolution_matrix = np.uint16(tiffdeconv)
 		
@@ -138,5 +137,4 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	print("Runtime: ",tt/60, "minutes")
 	#it.statusbar['text']="Runtime: "+str(tt/60)+"minutes"
 	message = ''
-	np.save('info.npy', it.infoFile)
 	return deconvolution_matrix

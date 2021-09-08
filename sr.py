@@ -104,62 +104,119 @@ def tensor_to_array(image):
 	image = Image.fromarray(tf.cast(image, tf.uint8).numpy())	
 	return image
 
-def nn(dev_img, img_tensor):
+def nn(img_tensor):
 	import tifffile
 	import interfaceTools as it
+	from imageFunctions import istiffRGB
 	global model
 	
 	if(len(it.windows_img)>0):
-		if not(os.path.isdir('training_deconv')) and not(os.path.isdir('training_set')):
-			os.mkdir('training_deconv')
+	
+		if not(os.path.isdir('training_set')):
 			os.mkdir('training_set')
-			print(dev_img.shape)
-			print(img_tensor.shape)
-			di = np.zeros((dev_img.shape[2],dev_img.shape[3],3))
-			it = np.zeros((img_tensor.shape[2],img_tensor.shape[3],3))
 			
-			for c in range(dev_img.shape[1]):
-				for z in range(dev_img.shape[0]):
-					di[:,:,0] = np.uint8(dev_img[z,c,:,:])
-					di[:,:,1] = np.uint8(dev_img[z,c,:,:])
-					di[:,:,2] = np.uint8(dev_img[z,c,:,:])
-					cv2.imwrite('training_deconv/'+str(c+1)+'_'+str(z+1)+'.jpg', di)
+		img_path = 'training_set/training_'+it.windows_img[-1].nameWindow
+	
+		# Creation of the training set
+		if not(os.path.isdir(img_path)):
+			os.mkdir(img_path)
+			print(img_tensor.shape)
+			
+			if (img_tensor.ndim == 2):
+				img = np.zeros((img_tensor.shape[0],img_tensor.shape[1],3))
+				img[:,:,0] = np.uint8(img_tensor)
+				img[:,:,1] = np.uint8(img_tensor)
+				img[:,:,2] = np.uint8(img_tensor)
+				cv2.imwrite(img_path+'/1.jpg', img)
+			if (img_tensor.ndim == 3):
+				if (istiffRGB(img_tensor.shape)):
+					cv2.imwrite(img_path+'/1.jpg', img_tensor)
+				elif (img_tensor.shape[0]>4):
+					img = np.zeros((img_tensor.shape[1],img_tensor.shape[2],3))
+					for z in range(img_tensor.shape[0]):
+						img[:,:,0] = np.uint8(img_tensor[z,:,:])
+						img[:,:,1] = np.uint8(img_tensor[z,:,:])
+						img[:,:,2] = np.uint8(img_tensor[z,:,:])			
+						cv2.imwrite(img_path+'/'+str(z+1)+'.jpg', img)
+				else:
+					img = np.zeros((img_tensor.shape[1],img_tensor.shape[2],3))
+					for c in range(img_tensor.shape[0]):
+						img[:,:,0] = np.uint8(img_tensor[c,:,:])
+						img[:,:,1] = np.uint8(img_tensor[c,:,:])
+						img[:,:,2] = np.uint8(img_tensor[c,:,:])			
+						cv2.imwrite(img_path+'/'+str(c+1)+'.jpg', img)					
 					
-			for c in range(img_tensor.shape[0]):
-				for z in range(img_tensor.shape[1]):
-					it[:,:,0] = np.uint8(img_tensor[c,z,:,:])
-					it[:,:,1] = np.uint8(img_tensor[c,z,:,:])
-					it[:,:,2] = np.uint8(img_tensor[c,z,:,:])
-					cv2.imwrite('training_set/'+str(c+1)+'_'+str(z+1)+'.jpg', it)			
+			if (img_tensor.ndim == 4):
+				img = np.zeros((img_tensor.shape[2],img_tensor.shape[3],3))
+				
+				for c in range(img_tensor.shape[1]):
+					for z in range(img_tensor.shape[0]):
+						img[:,:,0] = np.uint8(img_tensor[z,c,:,:])
+						img[:,:,1] = np.uint8(img_tensor[z,c,:,:])
+						img[:,:,2] = np.uint8(img_tensor[z,c,:,:])
+						cv2.imwrite(img_path+'/'+str(c+1)+'_'+str(z+1)+'.jpg', img)
 		
-		info = np.load('info.npy', allow_pickle=True).item()
-		img_output = np.zeros((info['z'], info['c'], info['x'], info['y']))
-
-		imgs_deconv = os.listdir('training_deconv')
+		#img_output = np.zeros(it.windows_img[-1].tensor_img.shape)
+		img_output = np.zeros(img_tensor.shape)
+		imgs = os.listdir(img_path)
+		
+		
 		
 		# Path model 
 		SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
-
 		model = hub.load(SAVED_MODEL_PATH)
-		
-		if not(os.path.isdir('output_NN')):
-			os.mkdir('output_NN')	
 
 		start = time.time()
-		for image in imgs_deconv:
-			fake_image, hr_image = model_NeuralNetwork('training_deconv/'+image)
+		display1f = False
+		# Neural network processing
+		if (img_output.ndim == 2):
+			print('Processing: ', imgs[0])
+			fake_image, hr_image = model_NeuralNetwork(img_path+'/'+imgs[0])
 			img_array = tensor_to_array(tf.squeeze(fake_image))
-			plt.imsave("output_NN/neural_network_"+image.split('.')[0]+'.png', img_array, cmap='gray')
-			c = int(image.split('.')[0].split('_')[0])-1
-			z = int(image.split('.')[0].split('_')[1])-1
-			print('Processing: ', image, '\tc: ',c,'z: ',z)
-			img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
-		print("Time Taken: %f" % (time.time() - start))	
+			img_output = np.asarray(img_array)[:,:,0]
+			display1f = True
+			
+		if (img_output.ndim == 3):
+			if (istiffRGB(img_output.shape)):
+				print('Processing: ', imgs[0])
+				fake_image, hr_image = model_NeuralNetwork(img_path+'/'+imgs[0])
+				img_array = tensor_to_array(tf.squeeze(fake_image))
+				img_output = np.asarray(img_array)
+				display1f = True
+			elif (img_output.shape[0]>4):
+				for image in imgs:
+					z = int(image.split('.')[0])-1
+					print('Processing: ', image, '\tz: ',z)			
+					fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
+					img_array = tensor_to_array(tf.squeeze(fake_image))
+					img_output[z,:,:] = np.asarray(img_array)[:,:,0]				
+			else:
+				for image in imgs:
+					c = int(image.split('.')[0])-1
+					print('Processing: ', image, '\tc: ',c)			
+					fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
+					img_array = tensor_to_array(tf.squeeze(fake_image))
+					img_output[c,:,:] = np.asarray(img_array)[:,:,0]			
+		
+		if (img_output.ndim == 4):
+			for image in imgs:
+				c = int(image.split('.')[0].split('_')[0])-1
+				z = int(image.split('.')[0].split('_')[1])-1
+				print('Processing: ', image, '\tc: ',c,'z: ',z)			
+				fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
+				img_array = tensor_to_array(tf.squeeze(fake_image))
+				img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
+			
+		print("Time Taken: %f" % (time.time() - start))
 		
 		import interfaceTools as it
 		nnimg = it.NewWindow('Neural Network ')
-		it.windows_img.append(nnimg)
-		nnimg.desplay_image('Neural Network ', img_output)
+		if (display1f):
+			nnimg.placeImage(img_output)
+		else:	
+			nnimg.desplay_image('Neural Network ', img_output)
+		nnimg.tensor_img = img_output	
+		it.windows_img.append(nnimg)	
 	else:
 		from tkinter import messagebox
 		messagebox.showinfo(message='There is no input parameter')
