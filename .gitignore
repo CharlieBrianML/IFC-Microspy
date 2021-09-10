@@ -1,8 +1,4 @@
 deconvolutions
-__pycache__
-oib_files
-training_deconv
-training_set
+src/__pycache__
+src/cache
 gitignore
-output_NN
-info.npy
