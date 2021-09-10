@@ -157,7 +157,7 @@ def deconvolution_event():
 			it.windows_img.append(deconvimg)
 			if(tensor_deconv.ndim==4):
 				deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
-			if(tensor_deconv.ndim==3):
+			elif(tensor_deconv.ndim==3):
 				import imageFunctions as imf
 				if(imf.istiffRGB(tensor_deconv.shape)):
 					deconvimg.placeImage(np.uint8(tensor_deconv))
@@ -229,20 +229,16 @@ def createpsf_event():
 def neural_network_event():
 	global tensor_deconv
 	from sr import nn
-	#nn(tensor_deconv, img_tensor)
-	nn(it.windows_img[-1].tensor_img)
+	try:
+		nn(it.windows_img[-1].tensor_img)
+	except IndexError:
+		messagebox.showinfo(message='There is no input parameter')
 	
 def on_closing():
 	import os
 	if not((messagebox.askyesno(message="Do you want to save the generated cache?", title="Cache"))):
-		if (os.path.isdir('output_NN')):
-			rmtree("output_NN")
-		if (os.path.isdir('training_deconv')):
-			rmtree("training_deconv")
 		if (os.path.isdir('training_set')):
 			rmtree("training_set")
-		if (os.path.isfile('info.npy')):
-			os.remove('info.npy')
 	it.mainWindow.destroy()	
 		
 #Se crea la ventana principal del programa
