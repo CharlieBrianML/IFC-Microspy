@@ -17,8 +17,9 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
 import matplotlib.pyplot as plt
-import interfaceTools as it
 import cv2
+import src.interfaceTools as it
+
 #os.environ["TFHUB_DOWNLOAD_PROGRESS"] = "True"
 
 model = None

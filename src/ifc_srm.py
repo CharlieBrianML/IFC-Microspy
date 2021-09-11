@@ -12,15 +12,16 @@
 
 from tkinter import messagebox
 from shutil import rmtree
-from imageFunctions import istiffRGB
-import oibread as oib
-import createPSF as cpsf
-import deconvolution as dv
-import tiff as tif
 import numpy as np
-import interfaceTools as it
-import sr
 import sys
+
+from .imageFunctions import istiffRGB
+import src.oibread as oib
+import src.createPSF as cpsf
+import src.deconvolution as dv
+import src.tiff as tif
+import src.interfaceTools as it
+import src.sr
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv = (None,None,None,None,None,None, None)
 entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor = (None,None,None,None,None,None,None)
@@ -241,27 +242,28 @@ def on_closing():
 			rmtree("training_set")
 	it.mainWindow.destroy()	
 		
-#Se crea la ventana principal del programa
-it.createWindowMain()
-#Se crea menu desplegable
-menu = it.createMenu()
-#Se añaden las opciones del menu
-opc1 = it.createOption(menu)
-it.createCommand(opc1, "Open", it.openFile)
-it.createCommand(opc1, "Save", it.saveFile)
-it.createCommand(opc1, "Exit", it.mainWindow.quit)
-it.createCascade(menu, 'File', opc1)
+def interface():
+	#Se crea la ventana principal del programa
+	it.createWindowMain()
+	#Se crea menu desplegable
+	menu = it.createMenu()
+	#Se añaden las opciones del menu
+	opc1 = it.createOption(menu)
+	it.createCommand(opc1, "Open", it.openFile)
+	it.createCommand(opc1, "Save", it.saveFile)
+	it.createCommand(opc1, "Exit", it.mainWindow.quit)
+	it.createCascade(menu, 'File', opc1)
 
-opc2 = it.createOption(menu)
-it.createCommand(opc2, "Deconvolution", psf_parameters)
-it.createCommand(opc2, "Neural Network", neural_network_event)
-#it.createCommand(opc2, "Zoom", mainWindow.quit)
-it.createCascade(menu, 'Image', opc2)
+	opc2 = it.createOption(menu)
+	it.createCommand(opc2, "Deconvolution", psf_parameters)
+	it.createCommand(opc2, "Neural Network", neural_network_event)
+	#it.createCommand(opc2, "Zoom", mainWindow.quit)
+	it.createCascade(menu, 'Image', opc2)
 
-#it.createStatusBar()
-statusBar = it.createStatusBar()
-#statusBar['text']=dv.message
+	#it.createStatusBar()
+	statusBar = it.createStatusBar()
+	#statusBar['text']=dv.message
 
-it.mainWindow.protocol("WM_DELETE_WINDOW", on_closing)
+	it.mainWindow.protocol("WM_DELETE_WINDOW", on_closing)
 
-it.mainWindow.mainloop()
+	it.mainWindow.mainloop()

@@ -18,8 +18,8 @@ from PIL import ImageTk, Image
 
 import cv2 
 import os
-import oibread as oib
-import tiff as tif
+import src.oibread as oib
+import src.tiff as tif
 
 # Define la ventana principal de la aplicación
 mainWindow = Tk() 
@@ -135,7 +135,7 @@ def createWindowMain():
 	# Asigna un título a la ventana
 	mainWindow.title('IFC Microscopy')
 	#mainWindow.iconbitmap('icon/ifc.ico')
-	mainWindow.tk.call('wm', 'iconphoto', mainWindow._w, PhotoImage(file='icon/ifc.png'))
+	mainWindow.tk.call('wm', 'iconphoto', mainWindow._w, PhotoImage(file='src/icon/ifc.png'))
 	mainWindow.resizable(width=False,height=False)
 	#return mainWindow
 	
@@ -195,7 +195,7 @@ class NewWindow:
 		self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
 		self.window.geometry(size) # anchura x altura
 		#self.window.configure(bg = 'beige')
-		self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='icon/ifc.png'))
+		self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='src/icon/ifc.png'))
 		self.window.resizable(width=False,height=False)
 		self.window.title(self.nameWindow)
 		self.img = None

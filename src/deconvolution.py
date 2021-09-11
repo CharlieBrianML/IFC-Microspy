@@ -12,15 +12,16 @@
 
 from time import time
 from time import sleep
-import interfaceTools as it
-from progress.bar import Bar, ChargingBar
-import imageFunctions as imf
-from deconvTF import deconvolveTF
-import tiff as tif
 import os
 import sys
 import tifffile
 import numpy as np
+from progress.bar import Bar, ChargingBar
+
+import src.interfaceTools as it
+import src.imageFunctions as imf
+from .deconvTF import deconvolveTF
+import src.tiff as tif
 
 message = ''
 
