@@ -234,6 +234,13 @@ def neural_network_event():
 		nn(it.windows_img[-1].tensor_img)
 	except IndexError:
 		messagebox.showinfo(message='There is no input parameter')
+		
+def about_event():
+	import cv2
+	about_win = it.NewWindow('About IFC Microscopy') #Objeto de la clase NewWindow
+	img = cv2.imread('src/icon/About.png')
+	about_win.placeImage(img)
+	about_win.createLabel('IFC Microscopy v0.6.25 ',115,30)
 	
 def on_closing():
 	import os
@@ -259,9 +266,12 @@ def interface():
 	it.createCommand(opc2, "Neural Network", neural_network_event)
 	#it.createCommand(opc2, "Zoom", mainWindow.quit)
 	it.createCascade(menu, 'Image', opc2)
+	
+	opc3 = it.createOption(menu)
+	it.createCommand(opc3, "About IFC Microscopy", about_event)
+	it.createCascade(menu, 'Help', opc3)	
 
 	it.statusBar = it.createStatusBar()
-	#it.statusBar.configure(text = it.message)
 
 	it.mainWindow.protocol("WM_DELETE_WINDOW", on_closing)
 
