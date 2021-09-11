@@ -229,7 +229,7 @@ def createpsf_event():
 	
 def neural_network_event():
 	global tensor_deconv
-	from sr import nn
+	from .sr import nn
 	try:
 		nn(it.windows_img[-1].tensor_img)
 	except IndexError:

@@ -111,7 +111,7 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 
 	path = os.path.dirname(os.path.realpath(sys.argv[0])) #Working directory
 	savepath = os.path.join(path,'deconvolutions/Deconvolution_'+nameFile.split('.')[0]+' i-'+str(i)+' w-'+str(weight)+'.tif')
-	tifffile.imsave(path + '/deconvolutions/'+nameFile.split('.')[0]+'_normalized.tif', np.uint16(img_tensor*(65535/img_tensor.max())), imagej=True)
+	#tifffile.imsave(path + '/deconvolutions/'+nameFile.split('.')[0]+'_normalized.tif', np.uint16(img_tensor*(65535/img_tensor.max())), imagej=True)
 	
 	print(img_tensor.shape)
 	print(psf_tensor.shape)
@@ -129,7 +129,7 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 		
 	deconvolution_matrix = np.uint16(tiffdeconv)
 		
-	tifffile.imsave(savepath, deconvolution_matrix, imagej=True)
+	#tifffile.imsave(savepath, deconvolution_matrix, imagej=True)
 	message = 'Deconvolution successful, end of execution'
 	print(message)
 		

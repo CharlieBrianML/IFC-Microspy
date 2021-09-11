@@ -107,8 +107,8 @@ def tensor_to_array(image):
 
 def nn(img_tensor):
 	import tifffile
-	import interfaceTools as it
-	from imageFunctions import istiffRGB
+	import src.interfaceTools as it
+	from .imageFunctions import istiffRGB
 	global model
 	
 	if(len(it.windows_img)>0):
@@ -210,7 +210,7 @@ def nn(img_tensor):
 			
 		print("Time Taken: %f" % (time.time() - start))
 		
-		import interfaceTools as it
+		import src.interfaceTools as it
 		nnimg = it.NewWindow('Neural Network ')
 		if (display1f):
 			nnimg.placeImage(img_output)

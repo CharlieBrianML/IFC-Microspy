@@ -308,7 +308,7 @@ class NewWindow:
 	def resize_image_percent(self, img, percent):
 		import cv2
 		import numpy as np
-		import imageFunctions as imf
+		import src.imageFunctions as imf
 		width = int(img.shape[1] * percent / 100)
 		height = int(img.shape[0] * percent / 100)
 		dim = (width, height)	
