@@ -159,7 +159,7 @@ def deconvolution_event():
 			if(tensor_deconv.ndim==4):
 				deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
 			elif(tensor_deconv.ndim==3):
-				import imageFunctions as imf
+				import src.imageFunctions as imf
 				if(imf.istiffRGB(tensor_deconv.shape)):
 					deconvimg.placeImage(np.uint8(tensor_deconv))
 				else: 
@@ -260,9 +260,8 @@ def interface():
 	#it.createCommand(opc2, "Zoom", mainWindow.quit)
 	it.createCascade(menu, 'Image', opc2)
 
-	#it.createStatusBar()
-	statusBar = it.createStatusBar()
-	#statusBar['text']=dv.message
+	it.statusBar = it.createStatusBar()
+	#it.statusBar.configure(text = it.message)
 
 	it.mainWindow.protocol("WM_DELETE_WINDOW", on_closing)
 

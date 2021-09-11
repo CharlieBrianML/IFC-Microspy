@@ -156,7 +156,7 @@ def shape_psf(tensor, metadata, psftype):
 			print('\nGenerating psf channel: ',c)
 			multipsf[:,c,:,:] = constructpsf(metadata, c+1, True, psftype)	
 	if (dimtensor==3):
-		import imageFunctions as imf
+		import src.imageFunctions as imf
 		multipsf = np.zeros(tensor.shape)
 		#metadata['Axis 3 Parameters Common']['MaxSize']=0.0
 		if(imf.istiffRGB(tensor.shape)):

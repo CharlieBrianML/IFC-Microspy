@@ -113,10 +113,10 @@ def nn(img_tensor):
 	
 	if(len(it.windows_img)>0):
 	
-		if not(os.path.isdir('training_set')):
-			os.mkdir('training_set')
+		if not(os.path.isdir('src/cache/training_set')):
+			os.mkdir('src/cache/training_set')
 			
-		img_path = 'training_set/training_'+it.windows_img[-1].nameWindow
+		img_path = 'src/cache/training_set/training_'+it.windows_img[-1].nameWindow
 	
 		# Creation of the training set
 		if not(os.path.isdir(img_path)):
@@ -172,6 +172,7 @@ def nn(img_tensor):
 		# Neural network processing
 		if (img_output.ndim == 2):
 			print('Processing: ', imgs[0])
+			it.statusBar.configure(text = 'Processing: '+str(imgs[0]))
 			fake_image, hr_image = model_NeuralNetwork(img_path+'/'+imgs[0])
 			img_array = tensor_to_array(tf.squeeze(fake_image))
 			img_output = np.asarray(img_array)[:,:,0]
@@ -180,6 +181,7 @@ def nn(img_tensor):
 		if (img_output.ndim == 3):
 			if (istiffRGB(img_output.shape)):
 				print('Processing: ', imgs[0])
+				it.statusBar.configure(text = 'Processing: '+str(imgs[0]))
 				fake_image, hr_image = model_NeuralNetwork(img_path+'/'+imgs[0])
 				img_array = tensor_to_array(tf.squeeze(fake_image))
 				img_output = np.asarray(img_array)
@@ -187,14 +189,16 @@ def nn(img_tensor):
 			elif (img_output.shape[0]>4):
 				for image in imgs:
 					z = int(image.split('.')[0])-1
-					print('Processing: ', image, '\tz: ',z)			
+					print('Processing: ', image, '\tz: ',z)	
+					it.statusBar.configure(text = 'Processing: '+image+'\tz: '+str(z))
 					fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
 					img_array = tensor_to_array(tf.squeeze(fake_image))
 					img_output[z,:,:] = np.asarray(img_array)[:,:,0]				
 			else:
 				for image in imgs:
 					c = int(image.split('.')[0])-1
-					print('Processing: ', image, '\tc: ',c)			
+					print('Processing: ', image, '\tc: ',c)	
+					it.statusBar.configure(text = 'Processing: '+image+'\tc: '+str(c))		
 					fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
 					img_array = tensor_to_array(tf.squeeze(fake_image))
 					img_output[c,:,:] = np.asarray(img_array)[:,:,0]			
@@ -203,12 +207,14 @@ def nn(img_tensor):
 			for image in imgs:
 				c = int(image.split('.')[0].split('_')[0])-1
 				z = int(image.split('.')[0].split('_')[1])-1
-				print('Processing: ', image, '\tc: ',c,'z: ',z)			
+				print('Processing: ', image, '\tc: ',c,'z: ',z)
+				it.statusBar.configure(text = 'Processing: '+image+'\tc: '+str(c)+'\tz: '+str(z))
 				fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
 				img_array = tensor_to_array(tf.squeeze(fake_image))
 				img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
 			
 		print("Time Taken: %f" % (time.time() - start))
+		it.statusBar.configure(text = "Time Taken: " + str(time.time() - start))
 		
 		import src.interfaceTools as it
 		nnimg = it.NewWindow('Neural Network ')

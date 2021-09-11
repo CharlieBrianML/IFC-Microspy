@@ -47,12 +47,14 @@ def deconvolutionTiff(img,psf,iterations,weight):
 			deconvN = imf.normalizar(img_denoised) #The matrix is normalized
 			
 			print('Channel ',c+1,' deconvolved')
+			it.statusBar.configure(text = 'Channel '+str(c+1)+' deconvolved')
 			deconv_list[c,:,:]=deconvN
 	if(img.ndim==4):
 		if(imf.istiffRGB(img.shape)):
 			for c in range(img.shape[0]):
 				deconv= deconvolutionRGB(img[c,:,:,:],psf[c,:,:], iterations, weight) #Image deconvolution function
 				print('Channel ',c+1,' deconvolved')
+				it.statusBar.configure(text = 'Channel '+str(c+1)+' deconvolved')
 				deconv_list[c,:,:,:]=deconv
 		else:
 			for c in range(img.shape[1]):
@@ -68,6 +70,7 @@ def deconvolutionTiff(img,psf,iterations,weight):
 					deconvN = imf.normalizar(img_denoised) #The matrix is normalized
 					deconv_list[z,c,:,:]=deconvN
 					bar.next()
+				it.statusBar.configure(text = 'Channel '+str(c+1)+' deconvolved')	
 				bar.finish()
 	if(img.ndim==5):
 		for c in range(img.shape[0]):
@@ -117,6 +120,7 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	print(psf_tensor.shape)
 	message = '\nStarting deconvolution'
 	print(message)
+	it.statusBar.configure(text = 'Starting deconvolution')
 	if(img_tensor.ndim==2):
 		tiffdeconv = deconvolution1Frame(img_tensor,psf_tensor,i,weight)
 	if(img_tensor.ndim==3):
@@ -132,6 +136,7 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	#tifffile.imsave(savepath, deconvolution_matrix, imagej=True)
 	message = 'Deconvolution successful, end of execution'
 	print(message)
+	it.statusBar.configure(text = message)
 		
 	tf=time()
 	tt=tf-to
