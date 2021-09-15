@@ -214,7 +214,7 @@ def createpsf_event():
 			
 			opcDeconv = it.NewWindow('Deconvolution parameters','300x200') #Objeto de la clase NewWindow
 			
-			opcDeconv.createLabel('Image: ',20,20)
+			opcDeconv.createLabel('File: ',20,20)
 			opcDeconv.createLabel('PSF: ',20,50)
 			opcDeconv.createLabel('Iterations: ',20,80)
 			opcDeconv.createLabel('Weight TV: ',20,110)
@@ -245,6 +245,10 @@ def about_event():
 	about_win.placeImage(img)
 	about_win.createLabel('IFC Microscopy v0.6.25 ',115,30)
 	
+def close_windows_event():
+	for win in it.windows_img:
+		win.destroy()	
+	
 def on_closing():
 	import os
 	if not((messagebox.askyesno(message="Do you want to save the generated cache?", title="Cache"))):
@@ -253,14 +257,15 @@ def on_closing():
 	it.mainWindow.destroy()	
 		
 def interface():
-	#Se crea la ventana principal del programa
+	#The main program window is created
 	it.createWindowMain()
-	#Se crea menu desplegable
+	#Drop-down menu is created
 	menu = it.createMenu()
-	#Se añaden las opciones del menu
+	#Menu options are added
 	opc1 = it.createOption(menu)
 	it.createCommand(opc1, "Open", it.openFile)
 	it.createCommand(opc1, "Save", it.saveFile)
+	it.createCommand(opc1, "Close windows", close_windows_event)
 	it.createCommand(opc1, "Exit", it.mainWindow.quit)
 	it.createCascade(menu, 'File', opc1)
 
