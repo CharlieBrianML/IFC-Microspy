@@ -103,11 +103,13 @@ def psf_parameters():
 	
 	try:
 
-		if (it.file.split('.')[1]=='oib'):
-			metadata = oib.getMetadata(it.file)
-		elif (it.file.split('.')[1]=='tif'):
+		nameFile = it.windows_img[-1].nameFile
+		pathFile = it.windows_img[-1].path
+		if (nameFile.split('.')[1]=='oib'):
+			metadata = oib.getMetadata(pathFile)
+		elif (nameFile.split('.')[1]=='tif'):
 			try:
-				metadata = tif.getMetadata(it.file)
+				metadata = tif.getMetadata(pathFile)
 				if (len(metadata)==0):
 					metadata = metadata_init
 				print(metadata)
@@ -125,7 +127,7 @@ def psf_parameters():
 			metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
 			metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]		
 			
-		opcPsf = it.NewWindow(it.file.split('/')[len(it.file.split('/'))-1],'300x550') #Objeto de la clase NewWindow
+		opcPsf = it.NewWindow(it.windows_img[-1].nameWindow,'300x550') #Objeto de la clase NewWindow
 		
 		#Creation of the psf parameters window
 		if (it.windows_img[-1].tensor_img.ndim==4):
@@ -136,7 +138,7 @@ def psf_parameters():
 				psf_winolyparmts()
 			elif (it.windows_img[-1].tensor_img.shape[0]>4): 		#Matrix of the form (z,x,y)
 				psf_winolyparmts()
-			else: 													#Matrix of the form (c,x,y)
+			else: 											#Matrix of the form (c,x,y)
 				psf_winmnyparmts()
 		else: 
 			psf_winolyparmts()
@@ -156,17 +158,17 @@ def deconvolution_event():
 			i = int(entryIterations.get())
 			w = int(entryWeight.get())
 			opcDeconv.destroy()
-			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i,w, it.file.split('/')[len(it.file.split('/'))-1], metadata)
-			deconvimg = it.NewWindow('Deconvolution'+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0]+' i:'+str(i)+' w:'+str(w))
+			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i,w, it.windows_img[-1].nameFile, metadata)
+			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[-1].nameWindow+' i:'+str(i)+' w:'+str(w), image = True)
 			it.windows_img.append(deconvimg)
 			if(tensor_deconv.ndim==4):
-				deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0]+' i:'+str(i)+' w:'+str(w), tensor_deconv)
+				deconvimg.desplay_image(tensor_deconv)
 			elif(tensor_deconv.ndim==3):
 				import src.imageFunctions as imf
 				if(imf.istiffRGB(tensor_deconv.shape)):
 					deconvimg.placeImage(np.uint8(tensor_deconv))
 				else: 
-					deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0]+' i:'+str(i)+' w:'+str(w), tensor_deconv)
+					deconvimg.desplay_image(tensor_deconv)
 			else:
 				deconvimg.placeImage(tensor_deconv)
 				deconvimg.tensor_img = tensor_deconv
@@ -219,8 +221,8 @@ def createpsf_event():
 			opcDeconv.createLabel('Iterations: ',20,80)
 			opcDeconv.createLabel('Weight TV: ',20,110)
 			
-			entryimg = opcDeconv.createEntry(it.file.split('/')[len(it.file.split('/'))-1],110,20, 25,True)
-			entrypsf = opcDeconv.createEntry('psf_'+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0],110,50,25, True)
+			entryimg = opcDeconv.createEntry(it.windows_img[-1].nameFile,110,20, 25,True)
+			entrypsf = opcDeconv.createEntry('psf_'+it.windows_img[-1].nameWindow,110,50,25, True)
 			
 			entryIterations = opcDeconv.createEntry('',110,80,25)
 			entryWeight = opcDeconv.createEntry('',110,110,25)

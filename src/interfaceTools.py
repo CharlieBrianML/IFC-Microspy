@@ -40,41 +40,40 @@ infoFile = {}
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""
 	global file, tensor_img, panelImg
-	file = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('jpg files','*.jpg')))
-	if(len(file)>0):
+	filepath = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('jpg files','*.jpg')))
+	if(len(filepath)>0):
 		try:
-			filesPath.append(file)
-			nameFile = file.split('/')[len(file.split('/'))-1]
+			nameFile = filepath.split('/')[-1]
 			if(os.path.splitext(nameFile)[1]=='.tif'):
-				tensor_img = tif.readTiff(file)
-				from imageFunctions import istiffRGB
+				tensor_img = tif.readTiff(filepath)
+				from src.imageFunctions import istiffRGB
 				if(not(istiffRGB(tensor_img.shape))):
 					print('File: ', nameFile)
 					print(tensor_img.shape)
 					
 					if(tensor_img.ndim==4 or tensor_img.ndim==3):
-						venImg = NewWindow(nameFile)
-						tensor_img = venImg.desplay_image(nameFile, tensor_img)
+						venImg = NewWindow(filepath, image = True)
+						venImg.desplay_image(tensor_img)
 						windows_img.append(venImg)	
 					else:
-						venImg = NewWindow(nameFile)
+						venImg = NewWindow(filepath, image = True)
 						venImg.placeImage(tensor_img)
 						venImg.tensor_img = tensor_img
 						windows_img.append(venImg)
 					
 			elif(os.path.splitext(nameFile)[1]=='.oib'):
 				print('File: ', nameFile)
-				tensor_img = oib.get_matrix_oib(file)
+				tensor_img = oib.get_matrix_oib(filepath)
 				print(tensor_img.shape)
 				
-				venImg = NewWindow(nameFile.split('.')[0])
-				tensor_img = venImg.desplay_image(nameFile, tensor_img)
+				venImg = NewWindow(filepath, image = True)
+				venImg.desplay_image(tensor_img)
 				windows_img.append(venImg)
 			else:
 				import cv2
 				print('File: ', nameFile)
-				matrix_img = cv2.imread(file)
-				venImg = NewWindow(nameFile)
+				matrix_img = cv2.imread(filepath)
+				venImg = NewWindow(filepath, image = True)
 				venImg.placeImage(matrix_img)
 				venImg.tensor_img = matrix_img
 				windows_img.append(venImg)
@@ -188,21 +187,29 @@ def createStatusBar():
 class NewWindow:
 	"""This class contains the functions to define a window"""
 	
-	def __init__(self,nameWindow,size = None):
-		self.nameWindow = nameWindow
+	def __init__(self,nameWindow,size = None, image = False):
+		if image:
+			self.nameFile = nameWindow.split('/')[-1]
+			self.nameWindow = self.nameFile.split('.')[0]
+			self.path = nameWindow
+			self.img, self.tensor_img = (None, None)
+			self.axisz_max, self.axisc_max, self.posz, self.posc = (0, 0, 0, 0)
+		else: 
+			self.nameWindow = nameWindow
+			self.nameFile, self.path = (None, None)
+			
 		self.window = Toplevel(mainWindow)
 		self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
-		self.window.geometry(size) # anchura x altura
+		self.window.geometry(size) # (width, height)
 		#self.window.configure(bg = 'beige')
 		self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='src/icon/ifc.png'))
 		self.window.resizable(width=False,height=False)
 		self.window.title(self.nameWindow)
-		self.img = None
-		self.axisz_max = 0
-		self.axisc_max = 0
-		self.posz = 0
-		self.posc = 0
-		self.tensor_img = None
+		# self.axisz_max = 0
+		# self.axisc_max = 0
+		# self.posz = 0
+		# self.posc = 0
+				
 		
 	def on_closing(self):
 		print('Closed: ', self.nameWindow)
@@ -368,7 +375,7 @@ class NewWindow:
 		self.panelImg.image = self.img			
 		self.scrollbarc.config(command=self.listboxc.yview(self.posc))		
 		
-	def desplay_image(self, nameFile, tensor_img):
+	def desplay_image(self, tensor_img):
 		self.tensor_img = tensor_img
 		if tensor_img.ndim == 4:
 			self.update_axes(tensor_img.shape[1],tensor_img.shape[0])
@@ -382,4 +389,3 @@ class NewWindow:
 			self.createStatusBar()
 			scrollc = self.scrollbarc(tensor_img.shape[0]-1, zscroll=False)
 			self.panelImg = self.placeImageTensor(tensor_img[0,:,:])
-		return tensor_img
