@@ -217,7 +217,7 @@ def nn(img_tensor):
 		it.statusBar.configure(text = "Time Taken: " + str(time.time() - start))
 		
 		import src.interfaceTools as it
-		nnimg = it.NewWindow('Neural Network ')
+		nnimg = it.NewWindow('Neural Network: '+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0])
 		if (display1f):
 			nnimg.placeImage(img_output)
 		else:	

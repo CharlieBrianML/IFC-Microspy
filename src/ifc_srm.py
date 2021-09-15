@@ -149,32 +149,35 @@ def psf_parameters():
 		messagebox.showinfo(message='No file has been opened')
 
 def deconvolution_event():
-	global entryIterations, entryWeight, dropdownImg, metadata, tensor_deconv, img_tensor
+	global entryIterations, entryWeight, dropdownImg, metadata, tensor_deconv, img_tensor, opcDeconv
 	img_tensor = it.windows_img[-1].tensor_img
 	try:
 		if(int(entryIterations.get())>0):
-			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,int(entryIterations.get()),int(entryWeight.get()), it.file.split('/')[len(it.file.split('/'))-1], metadata)
-			deconvimg = it.NewWindow('Deconvolution'+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get())
+			i = int(entryIterations.get())
+			w = int(entryWeight.get())
+			opcDeconv.destroy()
+			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i,w, it.file.split('/')[len(it.file.split('/'))-1], metadata)
+			deconvimg = it.NewWindow('Deconvolution'+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0]+' i:'+str(i)+' w:'+str(w))
 			it.windows_img.append(deconvimg)
 			if(tensor_deconv.ndim==4):
-				deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
+				deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0]+' i:'+str(i)+' w:'+str(w), tensor_deconv)
 			elif(tensor_deconv.ndim==3):
 				import src.imageFunctions as imf
 				if(imf.istiffRGB(tensor_deconv.shape)):
 					deconvimg.placeImage(np.uint8(tensor_deconv))
 				else: 
-					deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1]+' i:'+entryIterations.get()+' w:'+entryWeight.get(), tensor_deconv)
+					deconvimg.desplay_image('Deconvolution '+it.file.split('/')[len(it.file.split('/'))-1].split('.')[0]+' i:'+str(i)+' w:'+str(w), tensor_deconv)
 			else:
 				deconvimg.placeImage(tensor_deconv)
 				deconvimg.tensor_img = tensor_deconv
 		else:
-			messagebox.showinfo(message='Iteration value equal to zero is not accepted')
+			messagebox.showinfo(message='Iteration value equal to zero is not accepted')	
 	except (AttributeError, ValueError):
 		messagebox.showinfo(message='There are empty parameters, please check')
 	
 def createpsf_event():
 	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
-	global multipsf, opcPsf, entryIterations, entryWeight, dropdownPSF, metadata, entryrefr_index
+	global multipsf, opcPsf, entryIterations, entryWeight, dropdownPSF, metadata, entryrefr_index, opcDeconv
 	
 	entryex = (entryex_wavelench1, entryex_wavelench2, entryex_wavelench3, entryex_wavelench4)
 	entryem = (entryem_wavelench1, entryem_wavelench2, entryem_wavelench3, entryem_wavelench4)
@@ -209,7 +212,7 @@ def createpsf_event():
 			multipsf = cpsf.shape_psf(it.windows_img[-1].tensor_img,metadata, psftype)
 			opcPsf.destroy()
 			
-			opcDeconv = it.NewWindow('Deconv parameters','300x200') #Objeto de la clase NewWindow
+			opcDeconv = it.NewWindow('Deconvolution parameters','300x200') #Objeto de la clase NewWindow
 			
 			opcDeconv.createLabel('Image: ',20,20)
 			opcDeconv.createLabel('PSF: ',20,50)

@@ -84,7 +84,6 @@ def openFile():
 def saveFile():
 	"""This function save files of type .oib .tif and .bmp"""
 	global cmbxFile, opcSF
-	print(windows_img)
 	if(len(windows_img)>0):
 		opcSF = NewWindow('Save File','300x100')
 		opcSF.createLabel('What image do you want to save?',20,20)
