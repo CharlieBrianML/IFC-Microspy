@@ -213,10 +213,12 @@ def nn(img_tensor):
 				img_array = tensor_to_array(tf.squeeze(fake_image))
 				img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
 			
-		print("Time Taken: %f" % (time.time() - start))
+		import src.interfaceTools as it
+		#print("Time Taken: %f" % (time.time() - start))
+		(m,s) = it.getFormatTime(time.time() - start)
+		print("Runtime: ",m, "minutes, ",s, "seconds")		
 		it.statusBar.configure(text = "Time Taken: " + str(time.time() - start))
 		
-		import src.interfaceTools as it
 		nnimg = it.NewWindow('Neural Network: '+it.windows_img[-1].nameWindow, image = True)
 		if (display1f):
 			nnimg.placeImage(img_output)

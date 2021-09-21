@@ -137,10 +137,9 @@ def deconvolutionMain(img_tensor,psf_tensor,i,weight, nameFile, metadata):
 	message = 'Deconvolution successful, end of execution'
 	print(message)
 	it.statusBar.configure(text = message)
-		
-	tf=time()
-	tt=tf-to
-	print("Runtime: ",tt/60, "minutes")
+
+	(m,s) = it.getFormatTime(time() - to)
+	print("Runtime: ",m, "minutes, ",s, "seconds")
 	#it.statusbar['text']="Runtime: "+str(tt/60)+"minutes"
 	message = ''
 	return deconvolution_matrix
