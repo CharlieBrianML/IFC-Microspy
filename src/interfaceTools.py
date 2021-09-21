@@ -97,6 +97,7 @@ def saveFileEvent():
 	import tifffile
 	import os
 	import numpy as np
+	from src.imageFunctions import istiffRGB
 	selected_file = cmbxFile.current()
 	image = windows_img[selected_file].tensor_img
 	namewin = windows_img[selected_file].nameWindow
@@ -107,13 +108,19 @@ def saveFileEvent():
 			if (savepath!=''):
 				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
 				print('Saved file: ',savepath)
-				opcSF.destroy()
 		if(image.ndim==3):
-			tifffile.imsave(savepath, image, imagej=True)
+			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
+			if(not(istiffRGB(image.shape))):			
+				tifffile.imsave(savepath, image, imagej=True)
+				print('Saved file: ',savepath)
+			else: 
+				cv2.imwrite(savepath, image)	
 		if(image.ndim==2):	
 			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
 			cv2.imwrite(savepath, image)
-	except:
+		opcSF.destroy()	
+	#except:
+	except ZeroDivisionError:	
 		messagebox.showinfo(message='Error when trying to save the file, try again')
 		print("Error inesperado:", sys.exc_info()[0])
 		
@@ -122,6 +129,12 @@ def getNamesWindows():
 	for window_object in windows_img:
 		names.append(window_object.nameWindow)
 	return names
+	
+def getFormatTime(time):
+	print(time)
+	minutes = int(time/60)
+	seconds = int(time%60)
+	return (minutes, seconds)
 	
 def createWindowMain():
 	"""Definition of the main window"""
@@ -205,19 +218,15 @@ class NewWindow:
 		self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='src/icon/ifc.png'))
 		self.window.resizable(width=False,height=False)
 		self.window.title(self.nameWindow)
-		# self.axisz_max = 0
-		# self.axisc_max = 0
-		# self.posz = 0
-		# self.posc = 0
 				
 		
 	def on_closing(self):
 		print('Closed: ', self.nameWindow)
-		self.window.destroy()
 		if (self.nameWindow in filesName):
 			filesName.remove(self.nameWindow)
 		if (self in windows_img):
 			windows_img.remove(self)
+		self.window.destroy()	
 			
 	def destroy(self):
 		self.window.destroy()

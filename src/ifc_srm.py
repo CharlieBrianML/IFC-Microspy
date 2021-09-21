@@ -174,7 +174,8 @@ def deconvolution_event():
 				deconvimg.tensor_img = tensor_deconv
 		else:
 			messagebox.showinfo(message='Iteration value equal to zero is not accepted')	
-	except (AttributeError, ValueError):
+	#except (AttributeError, ValueError):
+	except ZeroDivisionError:	
 		messagebox.showinfo(message='There are empty parameters, please check')
 	
 def createpsf_event():
@@ -248,8 +249,8 @@ def about_event():
 	about_win.createLabel('IFC Microscopy v0.6.25 ',115,30)
 	
 def close_windows_event():
-	for win in it.windows_img:
-		win.destroy()	
+	for i in range(len(it.windows_img)):
+		it.windows_img[-1].on_closing()
 	
 def on_closing():
 	import os
