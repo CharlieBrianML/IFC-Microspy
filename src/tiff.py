@@ -25,14 +25,18 @@ datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'S
 
 def readTiff(fileTiff):
 	"""Function that reads a .tif file"""
+	import numpy as np
 	matrix = io.imread(fileTiff)
 	
 	if(matrix.ndim==4):
-		import numpy as np
 		matrix_aux=np.zeros((matrix.shape[0],matrix.shape[3],matrix.shape[1],matrix.shape[2]))
 		for c in range(matrix.shape[3]):
 			for z in range(matrix.shape[0]):
 				matrix_aux[z,c,:,:] = matrix[z,:,:,c]
+	elif(matrix.ndim==3):	
+		matrix_aux=np.zeros((matrix.shape[2],matrix.shape[0],matrix.shape[1]))
+		for c in range(matrix.shape[2]):
+			matrix_aux[c,:,:] = matrix[:,:,c]				
 	else:
 		matrix_aux = matrix			
 	return matrix_aux
