@@ -23,7 +23,7 @@ import src.tiff as tif
 import src.interfaceTools as it
 import src.sr
 
-entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv = (None,None,None,None,None,None, None)
+entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv, opcTVD, entryWeighttvd = (None,None,None,None,None,None, None, None, None)
 entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor = (None,None,None,None,None,None,None)
 entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4, entryrefr_index = (None,None,None,None,None,None,None,None,None)
 
@@ -149,17 +149,59 @@ def psf_parameters():
 		opcPsf.createButton('Generate psf', createpsf_event, 'bottom')
 	except IndexError:
 		messagebox.showinfo(message='No file has been opened')
+		
+def tvd_parameters():
+	global entryWeighttvd, opcTVD
+	try: 
+		name = it.windows_img[-1].nameFile
+		opcTVD = it.NewWindow('Total variation denoising','300x120') #Objeto de la clase NewWindow
+		
+		opcTVD.createLabel('File: ',20,20)
+		opcTVD.createLabel('Weight TV: ',20,50)
+		
+		entryimgtvd = opcTVD.createEntry(name,110,20, 25,True)
+		entryWeighttvd = opcTVD.createEntry('',110,50,25)
+		opcTVD.createButtonXY('Start', tvd_event, 110, 80)
+	except IndexError: 
+		messagebox.showinfo(message='No file has been opened')	
+		
+def tvd_event():
+	import src.imageFunctions as imf
+	try: 
+		w = float(entryWeighttvd.get())
+		if (w>0):
+			opcTVD.destroy()
+			img_tensor = it.windows_img[-1].tensor_img
+			print('Starting processing with weight equal to: ', w)
+			output = imf.tensorDenoisingTV(img_tensor, w)
+			output_img = it.NewWindow('TVD: '+it.windows_img[-1].nameWindow+' w:'+str(w), image = True)
+			it.windows_img.append(output_img)			
+			if(output.ndim==4):
+				output_img.desplay_image(output)
+			elif(output.ndim==3):
+				if(imf.istiffRGB(output.shape)):
+					print(output.max())
+					output = imf.normalizar(output)
+					output_img.placeImage(np.uint8(output))
+				else:
+					output_img.desplay_image(output)
+			else:
+				output_img.placeImage(output)
+				output_img.tensor_img = output			
+		else:
+			messagebox.showinfo(message='Weight value equal to zero is not accepted')	
+	except ValueError:
+		messagebox.showinfo(message='The parameter is empty, please check')
 
 def deconvolution_event():
-	global entryIterations, entryWeight, dropdownImg, metadata, tensor_deconv, img_tensor, opcDeconv
+	global entryIterations, dropdownImg, metadata, tensor_deconv, img_tensor, opcDeconv
 	img_tensor = it.windows_img[-1].tensor_img
 	try:
 		if(int(entryIterations.get())>0):
 			i = int(entryIterations.get())
-			w = int(entryWeight.get())
 			opcDeconv.destroy()
-			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i,w, it.windows_img[-1].nameFile, metadata)
-			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[-1].nameWindow+' i:'+str(i)+' w:'+str(w), image = True)
+			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i, it.windows_img[-1].nameFile, metadata)
+			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[-1].nameWindow+' i:'+str(i), image = True)
 			it.windows_img.append(deconvimg)
 			if(tensor_deconv.ndim==4):
 				deconvimg.desplay_image(tensor_deconv)
@@ -173,14 +215,13 @@ def deconvolution_event():
 				deconvimg.placeImage(tensor_deconv)
 				deconvimg.tensor_img = tensor_deconv
 		else:
-			messagebox.showinfo(message='Iteration value equal to zero is not accepted')	
-	#except (AttributeError, ValueError):
-	except ZeroDivisionError:	
+			messagebox.showinfo(message='Iteration value equal to zero is not accepted')
+	except (AttributeError, ValueError):
 		messagebox.showinfo(message='There are empty parameters, please check')
 	
 def createpsf_event():
 	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
-	global multipsf, opcPsf, entryIterations, entryWeight, dropdownPSF, metadata, entryrefr_index, opcDeconv
+	global multipsf, opcPsf, entryIterations, dropdownPSF, metadata, entryrefr_index, opcDeconv
 	
 	entryex = (entryex_wavelench1, entryex_wavelench2, entryex_wavelench3, entryex_wavelench4)
 	entryem = (entryem_wavelench1, entryem_wavelench2, entryem_wavelench3, entryem_wavelench4)
@@ -215,19 +256,17 @@ def createpsf_event():
 			multipsf = cpsf.shape_psf(it.windows_img[-1].tensor_img,metadata, psftype)
 			opcPsf.destroy()
 			
-			opcDeconv = it.NewWindow('Deconvolution parameters','300x200') #Objeto de la clase NewWindow
+			opcDeconv = it.NewWindow('Richardson-Lucy Deconvolution','300x150') #Objeto de la clase NewWindow
 			
 			opcDeconv.createLabel('File: ',20,20)
 			opcDeconv.createLabel('PSF: ',20,50)
 			opcDeconv.createLabel('Iterations: ',20,80)
-			opcDeconv.createLabel('Weight TV: ',20,110)
 			
 			entryimg = opcDeconv.createEntry(it.windows_img[-1].nameFile,110,20, 25,True)
 			entrypsf = opcDeconv.createEntry('psf_'+it.windows_img[-1].nameWindow,110,50,25, True)
 			
 			entryIterations = opcDeconv.createEntry('',110,80,25)
-			entryWeight = opcDeconv.createEntry('',110,110,25)
-			opcDeconv.createButtonXY('Deconvolution '+entryIterations.get()+' '+entryWeight.get(), deconvolution_event, 100, 140)	
+			opcDeconv.createButtonXY('Start', deconvolution_event, 100, 110)	
 		else: 
 			messagebox.showinfo(message='Quotient of the numeric aperture ' +str(metadata['num_aperture'])+ ' and refractive index ' +str(metadata['refr_index'])+ ' is greater than 1.0')
 	except ZeroDivisionError:
@@ -275,6 +314,7 @@ def interface():
 	opc2 = it.createOption(menu)
 	it.createCommand(opc2, "Deconvolution", psf_parameters)
 	it.createCommand(opc2, "Neural Network", neural_network_event)
+	it.createCommand(opc2, "TV Denoising", tvd_parameters)
 	#it.createCommand(opc2, "Zoom", mainWindow.quit)
 	it.createCascade(menu, 'Image', opc2)
 	

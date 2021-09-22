@@ -22,6 +22,7 @@ def normalizar(data):
 	for p in range(data.shape[0]):
 		for m in range(data.shape[1]):
 			data[p][m]=(data[p][m]*256)/max  #Formula para normalizar los valores de [0, 255]
+	print('Max value: ', data.max())		
 	return data
 
 def rescaleSkimage(img):
@@ -48,6 +49,29 @@ def escalaGrises(img):
 def denoisingTV(img,value):
 	"""Applies the total variation filter to an image"""
 	return denoise_tv_chambolle(img, weight=value)
+	
+def tensorDenoisingTV(tensor,value):
+	"""Applies the total variation filter to an image"""
+	if(tensor.ndim==2):
+		img = denoisingTV(tensor,value)
+	if(tensor.ndim==3):
+		img = np.zeros(tensor.shape)
+		if(istiffRGB(tensor.shape)):
+			for r in range(tensor.shape[2]):
+				img[:,:,r] = denoisingTV(tensor[:,:,r],value)
+		else:
+			if(tensor.shape[0]>4):
+				for z in range(tensor.shape[0]):
+					img[z,:,:] = denoisingTV(tensor[z,:,:],value)
+			else:
+				for c in range(tensor.shape[0]):
+					img[c,:,:] = denoisingTV(tensor[c,:,:],value)	
+	if(tensor.ndim==4):
+		img = np.zeros(tensor.shape)
+		for c in range(tensor.shape[1]):
+			for z in range(tensor.shape[0]):
+				img[z,c,:,:] = denoisingTV(tensor[z,c,:,:],value)
+	return img			
 	
 def imgReadCv2(nameImg):
 	return cv2.imread(nameImg)

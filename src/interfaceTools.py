@@ -111,7 +111,7 @@ def saveFileEvent():
 		if(image.ndim==3):
 			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
 			if(not(istiffRGB(image.shape))):			
-				tifffile.imsave(savepath, image, imagej=True)
+				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
 				print('Saved file: ',savepath)
 			else: 
 				cv2.imwrite(savepath, image)	
@@ -119,8 +119,7 @@ def saveFileEvent():
 			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
 			cv2.imwrite(savepath, image)
 		opcSF.destroy()	
-	#except:
-	except ZeroDivisionError:	
+	except:
 		messagebox.showinfo(message='Error when trying to save the file, try again')
 		print("Error inesperado:", sys.exc_info()[0])
 		
