@@ -33,10 +33,13 @@ def readTiff(fileTiff):
 		for c in range(matrix.shape[3]):
 			for z in range(matrix.shape[0]):
 				matrix_aux[z,c,:,:] = matrix[z,:,:,c]
-	elif(matrix.ndim==3):	
-		matrix_aux=np.zeros((matrix.shape[2],matrix.shape[0],matrix.shape[1]))
-		for c in range(matrix.shape[2]):
-			matrix_aux[c,:,:] = matrix[:,:,c]				
+	elif(matrix.ndim==3):
+		if(matrix.shape[2]<4):
+			matrix_aux=np.zeros((matrix.shape[2],matrix.shape[0],matrix.shape[1]))
+			for c in range(matrix.shape[2]):
+				matrix_aux[c,:,:] = matrix[:,:,c]		
+		else:
+			matrix_aux = matrix
 	else:
 		matrix_aux = matrix			
 	return matrix_aux
