@@ -107,22 +107,28 @@ def saveFileEvent():
 			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
 			if (savepath!=''):
 				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
-				print('Saved file: ',savepath)
+				it.printMessage('Saved file: '+savepath)
 		if(image.ndim==3):
 			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
 			if(not(istiffRGB(image.shape))):			
 				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
-				print('Saved file: ',savepath)
+				it.printMessage('Saved file: '+savepath)
 			else: 
-				cv2.imwrite(savepath, image)	
+				cv2.imwrite(savepath, image)
+				it.printMessage('Saved file: '+savepath)	
 		if(image.ndim==2):	
 			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
 			cv2.imwrite(savepath, image)
+			it.printMessage('Saved file: '+savepath)
 		opcSF.destroy()	
 	except:
 		messagebox.showinfo(message='Error when trying to save the file, try again')
-		print("Error inesperado:", sys.exc_info()[0])
+		print("Error: ", sys.exc_info()[0])
 		
+def printMessage(message):
+	print(message)
+	statusBar.configure(text = message)
+
 def getNamesWindows():
 	names = []
 	for window_object in windows_img:

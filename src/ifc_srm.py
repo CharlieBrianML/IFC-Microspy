@@ -172,7 +172,7 @@ def tvd_event():
 		if (w>0):
 			opcTVD.destroy()
 			img_tensor = it.windows_img[-1].tensor_img
-			print('Starting processing with weight equal to: ', w)
+			it.printMessage('Starting processing with weight equal to: '+str(w))
 			output = imf.tensorDenoisingTV(img_tensor, w)
 			output_img = it.NewWindow('TVD: '+it.windows_img[-1].nameWindow+' w:'+str(w), image = True)
 			it.windows_img.append(output_img)			
