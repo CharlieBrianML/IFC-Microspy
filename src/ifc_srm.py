@@ -24,8 +24,9 @@ import src.interfaceTools as it
 import src.sr
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv, opcTVD, entryWeighttvd = (None,None,None,None,None,None, None, None, None)
-entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor = (None,None,None,None,None,None,None)
+entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor, cmbxFile, opcimg = (None,None,None,None,None,None,None,None, None)
 entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4, entryrefr_index = (None,None,None,None,None,None,None,None,None)
+index = -1
 
 metadata_init = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
@@ -96,72 +97,90 @@ def psf_winolyparmts():
 	entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,280)
 	entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,310)		
 
-def psf_parameters():
-	global dropdownImg, dropdownPSF, metadata, opcPsf
+def psf_parameters(flg=True):
+	global dropdownImg, dropdownPSF, metadata, opcPsf, opcimg, index
 	global entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, entryrefr_index
 	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
 	
+	opcimg = "Deconvolution"
 	try:
-
-		nameFile = it.windows_img[-1].nameFile
-		pathFile = it.windows_img[-1].path
-		if (nameFile.split('.')[1]=='oib'):
-			metadata = oib.getMetadata(pathFile)
-		elif (nameFile.split('.')[1]=='tif'):
-			try:
-				metadata = tif.getMetadata(pathFile)
-				if (len(metadata)==0):
-					metadata = metadata_init
-				print(metadata)
-			except KeyError:
-				messagebox.showinfo(message='No metadata found, please fill in the parameters manually')
-				metadata = metadata_init
-				if (it.windows_img[-1].tensor_img.ndim>2):
-					metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
-					metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]
-				else:	
-					metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
-					metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]
-		else:
-			metadata = metadata_init
-			metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[0]
-			metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[-1].tensor_img.shape[1]		
-			
-		opcPsf = it.NewWindow(it.windows_img[-1].nameWindow,'300x550') #Objeto de la clase NewWindow
-		
-		#Creation of the psf parameters window
-		if (it.windows_img[-1].tensor_img.ndim==4):
-			psf_winmnyparmts()
-		elif (it.windows_img[-1].tensor_img.ndim==3):
-		
-			if (istiffRGB(it.windows_img[-1].tensor_img.shape)): 	#Matrix of the form (x,y,r)
-				psf_winolyparmts()
-			elif (it.windows_img[-1].tensor_img.shape[0]>4): 		#Matrix of the form (z,x,y)
-				psf_winolyparmts()
-			else: 											#Matrix of the form (c,x,y)
-				psf_winmnyparmts()
+		if(len(it.windows_img)>1 and flg):
+			selectFile()
 		else: 
-			psf_winolyparmts()
+			if (len(it.windows_img)==1):
+				index = -1		
+			nameFile = it.windows_img[index].nameFile
+			pathFile = it.windows_img[index].path
 
-		
-		opcPsf.createLabel('PSF type: ',20,10)
-		dropdownPSF = opcPsf.createCombobox(20,40)
-		opcPsf.createButton('Generate psf', createpsf_event, 'bottom')
+			if (nameFile.split('.')[-1]=='oib'):
+				try: 
+					metadata = oib.getMetadata(pathFile)
+				except KeyError:
+					messagebox.showinfo(message='No metadata found, please fill in the parameters manually')	
+					metadata = metadata_init
+					metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[0]
+					metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[1]					
+			elif (nameFile.split('.')[-1]=='tif'):
+				try:
+					metadata = tif.getMetadata(pathFile)
+					if (len(metadata)==0):
+						metadata = metadata_init
+					print(metadata)
+				except KeyError:
+					messagebox.showinfo(message='No metadata found, please fill in the parameters manually')
+					metadata = metadata_init
+					if (it.windows_img[index].tensor_img.ndim>2):
+						metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[0]
+						metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[1]
+					else:	
+						metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[0]
+						metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[1]
+			else:
+				metadata = metadata_init
+				metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[0]
+				metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[1]		
+				
+			opcPsf = it.NewWindow(it.windows_img[index].nameWindow,'300x550') #Objeto de la clase NewWindow
+			
+			#Creation of the psf parameters window
+			if (it.windows_img[index].tensor_img.ndim==4):
+				psf_winmnyparmts()
+			elif (it.windows_img[index].tensor_img.ndim==3):
+			
+				if (istiffRGB(it.windows_img[index].tensor_img.shape)): 	#Matrix of the form (x,y,r)
+					psf_winolyparmts()
+				elif (it.windows_img[index].tensor_img.shape[0]>4): 		#Matrix of the form (z,x,y)
+					psf_winolyparmts()
+				else: 											#Matrix of the form (c,x,y)
+					psf_winmnyparmts()
+			else: 
+				psf_winolyparmts()
+
+			
+			opcPsf.createLabel('PSF type: ',20,10)
+			dropdownPSF = opcPsf.createCombobox(20,40)
+			opcPsf.createButton('Generate psf', createpsf_event, 'bottom')
 	except IndexError:
-		messagebox.showinfo(message='No file has been opened')
+		messagebox.showinfo(message='No file has been opened')	
 		
-def tvd_parameters():
-	global entryWeighttvd, opcTVD
+def tvd_parameters(flg=True):
+	global entryWeighttvd, opcTVD, opcimg, index
+	opcimg = 'TV Denoising'
 	try: 
-		name = it.windows_img[-1].nameFile
-		opcTVD = it.NewWindow('Total variation denoising','300x120') #Objeto de la clase NewWindow
-		
-		opcTVD.createLabel('File: ',20,20)
-		opcTVD.createLabel('Weight TV: ',20,50)
-		
-		entryimgtvd = opcTVD.createEntry(name,110,20, 25,True)
-		entryWeighttvd = opcTVD.createEntry('',110,50,25)
-		opcTVD.createButtonXY('Start', tvd_event, 110, 80)
+		if(len(it.windows_img)>1 and flg):
+			selectFile()
+		else: 
+			if (len(it.windows_img)==1):
+				index = -1
+			name = it.windows_img[index].nameFile
+			opcTVD = it.NewWindow('Total variation denoising','300x120') #Objeto de la clase NewWindow
+			
+			opcTVD.createLabel('File: ',20,20)
+			opcTVD.createLabel('Weight TV: ',20,50)
+			
+			entryimgtvd = opcTVD.createEntry(name,110,20, 25,True)
+			entryWeighttvd = opcTVD.createEntry('',110,50,25)
+			opcTVD.createButtonXY('Start', tvd_event, 110, 80)
 	except IndexError: 
 		messagebox.showinfo(message='No file has been opened')	
 		
@@ -171,11 +190,11 @@ def tvd_event():
 		w = float(entryWeighttvd.get())
 		if (w>0):
 			opcTVD.destroy()
-			img_tensor = it.windows_img[-1].tensor_img
+			img_tensor = it.windows_img[index].tensor_img
 			it.printMessage('Starting processing with weight equal to: '+str(w))
 			output = imf.tensorDenoisingTV(img_tensor, w)
-			output_img = it.NewWindow('TVD: '+it.windows_img[-1].nameWindow+' w:'+str(w), image = True)
-			it.windows_img.append(output_img)			
+			output_img = it.NewWindow('TVD: '+it.windows_img[index].nameWindow+' w:'+str(w), image = True)
+			it.windows_img.append(output_img)
 			if(output.ndim==4):
 				output_img.desplay_image(output)
 			elif(output.ndim==3):
@@ -195,13 +214,13 @@ def tvd_event():
 
 def deconvolution_event():
 	global entryIterations, dropdownImg, metadata, tensor_deconv, img_tensor, opcDeconv
-	img_tensor = it.windows_img[-1].tensor_img
+	img_tensor = it.windows_img[index].tensor_img
 	try:
 		if(int(entryIterations.get())>0):
 			i = int(entryIterations.get())
 			opcDeconv.destroy()
-			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i, it.windows_img[-1].nameFile, metadata)
-			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[-1].nameWindow+' i:'+str(i), image = True)
+			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i, it.windows_img[index].nameFile, metadata)
+			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[index].nameWindow+' i:'+str(i), image = True)
 			it.windows_img.append(deconvimg)
 			if(tensor_deconv.ndim==4):
 				deconvimg.desplay_image(tensor_deconv)
@@ -209,6 +228,7 @@ def deconvolution_event():
 				import src.imageFunctions as imf
 				if(imf.istiffRGB(tensor_deconv.shape)):
 					deconvimg.placeImage(np.uint8(tensor_deconv))
+					deconvimg.tensor_img = tensor_deconv
 				else: 
 					deconvimg.desplay_image(tensor_deconv)
 			else:
@@ -253,7 +273,7 @@ def createpsf_event():
 
 			psftype = dropdownPSF.current()
 			
-			multipsf = cpsf.shape_psf(it.windows_img[-1].tensor_img,metadata, psftype)
+			multipsf = cpsf.shape_psf(it.windows_img[index].tensor_img,metadata, psftype)
 			opcPsf.destroy()
 			
 			opcDeconv = it.NewWindow('Richardson-Lucy Deconvolution','300x150') #Objeto de la clase NewWindow
@@ -262,8 +282,8 @@ def createpsf_event():
 			opcDeconv.createLabel('PSF: ',20,50)
 			opcDeconv.createLabel('Iterations: ',20,80)
 			
-			entryimg = opcDeconv.createEntry(it.windows_img[-1].nameFile,110,20, 25,True)
-			entrypsf = opcDeconv.createEntry('psf_'+it.windows_img[-1].nameWindow,110,50,25, True)
+			entryimg = opcDeconv.createEntry(it.windows_img[index].nameFile,110,20, 25,True)
+			entrypsf = opcDeconv.createEntry('psf_'+it.windows_img[index].nameWindow,110,50,25, True)
 			
 			entryIterations = opcDeconv.createEntry('',110,80,25)
 			opcDeconv.createButtonXY('Start', deconvolution_event, 100, 110)	
@@ -272,13 +292,45 @@ def createpsf_event():
 	except ZeroDivisionError:
 		messagebox.showinfo(message='Error, there are parameters that cannot be equal to zero')		
 	
-def neural_network_event():
-	global tensor_deconv
+def neural_network_event(flg=True):
+	global tensor_deconv, opcimg, index
 	from .sr import nn
-	try:
-		nn(it.windows_img[-1].tensor_img)
-	except IndexError:
+	opcimg = 'Neural Network'
+	try: 
+		if(len(it.windows_img)>1 and flg):
+			selectFile()
+		else: 
+			if (len(it.windows_img)==1):
+				index = -1		
+			nn(it.windows_img[index].tensor_img, index)
+	#except IndexError:
+	except ZeroDivisionError:	
 		messagebox.showinfo(message='There is no input parameter')
+		
+def selectFile():
+	"""This function select a file"""
+	global cmbxFile, opcSF
+	if(len(it.windows_img)>0):
+		opcSF = it.NewWindow('Open files','300x100')
+		opcSF.createLabel('Choose a file',20,20)
+		windows_img_names = it.getNamesWindows()
+		cmbxFile = opcSF.createCombobox2(windows_img_names,20,50)
+		opcSF.createButton('Select', selectFile_event, 'bottom')
+	else: 
+		messagebox.showinfo(message='No file has been opened')	
+		
+def selectFile_event():
+	"""This function select a file"""
+	global index
+	index = cmbxFile.current()
+	print('index: ', index)
+	opcSF.destroy()
+	if(opcimg=='Deconvolution'):
+		psf_parameters(flg=False)
+	if(opcimg=='Neural Network'):
+		neural_network_event(flg=False)
+	if(opcimg=='TV Denoising'):
+		tvd_parameters(flg=False)
 		
 def about_event():
 	import cv2
@@ -294,8 +346,8 @@ def close_windows_event():
 def on_closing():
 	import os
 	if not((messagebox.askyesno(message="Do you want to save the generated cache?", title="Cache"))):
-		if (os.path.isdir('training_set')):
-			rmtree("training_set")
+		if (os.path.isdir('src/cache/training_set')):
+			rmtree("src/cache/training_set")
 	it.mainWindow.destroy()	
 		
 def interface():

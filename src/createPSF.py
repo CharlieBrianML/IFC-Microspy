@@ -154,7 +154,7 @@ def shape_psf(tensor, metadata, psftype):
 		multipsf = np.zeros(tensor.shape)
 		for c in range(tensor.shape[1]):
 			print('\nGenerating psf channel: ',c)
-			multipsf[:,c,:,:] = constructpsf(metadata, c+1, True, psftype)	
+			multipsf[:,c,:,:] = constructpsf(metadata, c+1, True, psftype)
 	if (dimtensor==3):
 		import src.imageFunctions as imf
 		multipsf = np.zeros(tensor.shape)

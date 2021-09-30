@@ -105,7 +105,7 @@ def tensor_to_array(image):
 	image = Image.fromarray(tf.cast(image, tf.uint8).numpy())	
 	return image
 
-def nn(img_tensor):
+def nn(img_tensor, index):
 	import tifffile
 	import src.interfaceTools as it
 	from .imageFunctions import istiffRGB
@@ -213,7 +213,7 @@ def nn(img_tensor):
 		(m,s) = it.getFormatTime(time.time() - start)
 		it.printMessage("Runtime: "+str(m)+" minutes, "+str(s)+" seconds")		
 		
-		nnimg = it.NewWindow('Neural Network: '+it.windows_img[-1].nameWindow, image = True)
+		nnimg = it.NewWindow('Neural Network: '+it.windows_img[index].nameWindow, image = True)
 		if (display1f):
 			nnimg.placeImage(img_output)
 		else:	
