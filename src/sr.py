@@ -109,6 +109,7 @@ def nn(img_tensor, index):
 	import tifffile
 	import src.interfaceTools as it
 	from .imageFunctions import istiffRGB
+	from tkinter import messagebox
 	global model
 	
 	if(len(it.windows_img)>0):
@@ -157,11 +158,8 @@ def nn(img_tensor, index):
 						img[:,:,2] = np.uint8(img_tensor[z,c,:,:])
 						cv2.imwrite(img_path+'/'+str(c+1)+'_'+str(z+1)+'.jpg', img)
 		
-		#img_output = np.zeros(it.windows_img[-1].tensor_img.shape)
 		img_output = np.zeros(img_tensor.shape)
 		imgs = os.listdir(img_path)
-		
-		
 		
 		# Path model 
 		SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
@@ -169,57 +167,59 @@ def nn(img_tensor, index):
 
 		start = time.time()
 		display1f = False
-		# Neural network processing
-		if (img_output.ndim == 2):
-			it.printMessage('Processing: '+str(imgs[0]))
-			fake_image, hr_image = model_NeuralNetwork(img_path+'/'+imgs[0])
-			img_array = tensor_to_array(tf.squeeze(fake_image))
-			img_output = np.asarray(img_array)[:,:,0]
-			display1f = True
-			
-		if (img_output.ndim == 3):
-			if (istiffRGB(img_output.shape)):
+		try:	
+			# Neural network processing
+			if (img_output.ndim == 2):
 				it.printMessage('Processing: '+str(imgs[0]))
 				fake_image, hr_image = model_NeuralNetwork(img_path+'/'+imgs[0])
 				img_array = tensor_to_array(tf.squeeze(fake_image))
-				img_output = np.asarray(img_array)
+				img_output = np.asarray(img_array)[:,:,0]
 				display1f = True
-			elif (img_output.shape[0]>4):
-				for image in imgs:
-					z = int(image.split('.')[0])-1
-					it.printMessage('Processing: '+image+'\tz: '+str(z))
-					fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
+				
+			if (img_output.ndim == 3):
+				if (istiffRGB(img_output.shape)):
+					it.printMessage('Processing: '+str(imgs[0]))
+					fake_image, hr_image = model_NeuralNetwork(img_path+'/'+imgs[0])
 					img_array = tensor_to_array(tf.squeeze(fake_image))
-					img_output[z,:,:] = np.asarray(img_array)[:,:,0]				
-			else:
-				for image in imgs:
-					c = int(image.split('.')[0])-1
-					it.printMessage('Processing: '+image+'\tc: '+str(c))		
-					fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
-					img_array = tensor_to_array(tf.squeeze(fake_image))
-					img_output[c,:,:] = np.asarray(img_array)[:,:,0]			
-		
-		if (img_output.ndim == 4):
-			for image in imgs:
-				c = int(image.split('.')[0].split('_')[0])-1
-				z = int(image.split('.')[0].split('_')[1])-1
-				it.printMessage('Processing: '+image+'\tc: '+str(c)+'\tz: '+str(z))
-				fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
-				img_array = tensor_to_array(tf.squeeze(fake_image))
-				img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]
+					img_output = np.asarray(img_array)
+					display1f = True
+				elif (img_output.shape[0]>4):
+					for image in imgs:
+						z = int(image.split('.')[0])-1
+						it.printMessage('Processing: '+image+'\tz: '+str(z))
+						fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
+						img_array = tensor_to_array(tf.squeeze(fake_image))
+						img_output[z,:,:] = np.asarray(img_array)[:,:,0]				
+				else:
+					for image in imgs:
+						c = int(image.split('.')[0])-1
+						it.printMessage('Processing: '+image+'\tc: '+str(c))		
+						fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
+						img_array = tensor_to_array(tf.squeeze(fake_image))
+						img_output[c,:,:] = np.asarray(img_array)[:,:,0]			
 			
-		import src.interfaceTools as it
-		
-		(m,s) = it.getFormatTime(time.time() - start)
-		it.printMessage("Runtime: "+str(m)+" minutes, "+str(s)+" seconds")		
-		
-		nnimg = it.NewWindow('Neural Network: '+it.windows_img[index].nameWindow, image = True)
-		if (display1f):
-			nnimg.placeImage(img_output)
-		else:	
-			nnimg.desplay_image(img_output)
-		nnimg.tensor_img = img_output	
-		it.windows_img.append(nnimg)	
+			if (img_output.ndim == 4):
+				for image in imgs:
+					c = int(image.split('.')[0].split('_')[0])-1
+					z = int(image.split('.')[0].split('_')[1])-1
+					it.printMessage('Processing: '+image+'\tc: '+str(c)+'\tz: '+str(z))
+					fake_image, hr_image = model_NeuralNetwork(img_path+'/'+image)
+					img_array = tensor_to_array(tf.squeeze(fake_image))
+					img_output[z,c,:,:] = np.asarray(img_array)[:,:,0]			
+			
+			import src.interfaceTools as it
+			
+			(m,s) = it.getFormatTime(time.time() - start)
+			it.printMessage("Runtime: "+str(m)+" minutes, "+str(s)+" seconds")		
+			
+			nnimg = it.NewWindow('Neural Network: '+it.windows_img[index].nameWindow, image = True)
+			if (display1f):
+				nnimg.placeImage(img_output)
+			else:	
+				nnimg.desplay_image(img_output)
+			nnimg.tensor_img = img_output	
+			it.windows_img.append(nnimg)
+		except ValueError:
+			messagebox.showinfo(message='Matrix (x, y) is not the same size')			
 	else:
-		from tkinter import messagebox
 		messagebox.showinfo(message='There is no input parameter')

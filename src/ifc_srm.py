@@ -23,79 +23,48 @@ import src.tiff as tif
 import src.interfaceTools as it
 import src.sr
 
-entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv, opcTVD, entryWeighttvd = (None,None,None,None,None,None, None, None, None)
+entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv, opcTVD, entryWeighttvd, entryrefr_index = (None,None,None,None,None,None,None, None, None, None)
 entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor, cmbxFile, opcimg = (None,None,None,None,None,None,None,None, None)
-entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4, entryrefr_index = (None,None,None,None,None,None,None,None,None)
+entryem_wavelen, entryex_wavelen = (None, None)
 index = -1
 
 metadata_init = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
 'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0}}
 
-def psf_winmnyparmts():
-	global metadata, opcPsf
-	global entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, entryrefr_index
-	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
+def psf_winparmts(numch=1):
+	global metadata, opcPsf, entryem_wavelen, entryex_wavelen
+	global entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, entryrefr_index
+	
+	posy = 100
+	entryem_wavelen = []
+	entryex_wavelen = []
 	opcPsf.createLabel('PSF parameters ',20,70)
-	opcPsf.createLabel('Ex_wavelenCh1:                        [nm]',20,100)
-	opcPsf.createLabel('Ex_wavelenCh2:                        [nm]',20,130)
-	opcPsf.createLabel('Ex_wavelenCh3:                        [nm]',20,160)
-	opcPsf.createLabel('Ex_wavelenCh4:                        [nm]',20,190)
+	for ch in range(numch):
+		opcPsf.createLabel('Ex_wavelenCh'+str(ch+1)+':                        [nm]',20,posy)
+		entryex_wavelen.append(opcPsf.createEntry(metadata['Channel '+str(ch+1)+' Parameters']['ExcitationWavelength'],160,posy))
+		posy = posy + 30
+
+	for ch in range(numch):
+		opcPsf.createLabel('Em_wavelenCh'+str(ch+1)+':                      [nm] ',20,posy)
+		entryem_wavelen.append(opcPsf.createEntry(metadata['Channel '+str(ch+1)+' Parameters']['EmissionWavelength'],160,posy))
+		posy = posy + 30
+		
+	opcPsf.window.geometry('300x'+str(posy+210))	
 	
-	opcPsf.createLabel('Em_wavelenCh1:                      [nm] ',20,220)
-	opcPsf.createLabel('Em_wavelenCh2:                      [nm]',20,250)
-	opcPsf.createLabel('Em_wavelenCh3:                      [nm]',20,280)
-	opcPsf.createLabel('Em_wavelenCh4:                      [nm]',20,310)
+	opcPsf.createLabel('Num_aperture:',20,posy)
+	opcPsf.createLabel('Pinhole_radius:                          [um]',20,posy+30)
+	opcPsf.createLabel('Magnification:',20,posy+60)
+	opcPsf.createLabel('Refr_index:',20,posy+90)
+	opcPsf.createLabel('Dim_z:                                        [um]',20,posy+120)
+	opcPsf.createLabel('Dim_xy:                                        [um]',20,posy+150)
 	
-	opcPsf.createLabel('Num_aperture:',20,340)
-	opcPsf.createLabel('Pinhole_radius:                          [um]',20,370)
-	opcPsf.createLabel('Magnification:',20,400)
-	opcPsf.createLabel('Refr_index:',20,430)
-	opcPsf.createLabel('Dim_z:                                        [um]',20,460)
-	opcPsf.createLabel('Dim_xy:                                        [um]',20,490)
-	
-	entryex_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,100)
-	entryex_wavelench2 = opcPsf.createEntry(metadata['Channel 2 Parameters']['ExcitationWavelength'],160,130)
-	entryex_wavelench3 = opcPsf.createEntry(metadata['Channel 3 Parameters']['ExcitationWavelength'],160,160)
-	entryex_wavelench4 = opcPsf.createEntry(metadata['Channel 4 Parameters']['ExcitationWavelength'],160,190)
-	
-	entryem_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['EmissionWavelength'],160,220)
-	entryem_wavelench2 = opcPsf.createEntry(metadata['Channel 2 Parameters']['EmissionWavelength'],160,250)
-	entryem_wavelench3 = opcPsf.createEntry(metadata['Channel 3 Parameters']['EmissionWavelength'],160,280)
-	entryem_wavelench4 = opcPsf.createEntry(metadata['Channel 4 Parameters']['EmissionWavelength'],160,310)
-	
-	entrynum_aperture = opcPsf.createEntry(metadata['num_aperture'],160,340)
-	entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,370)
-	entrymagnification = opcPsf.createEntry(metadata['magnification'],160,400)
-	entryrefr_index = opcPsf.createEntry(metadata['refr_index'],160,430)
-	entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,460)
-	entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,490)
-	
-def psf_winolyparmts():
-	global metadata, opcPsf
-	global entryex_wavelen, entryem_wavelen, entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, entryrefr_index
-	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
-	opcPsf.window.geometry('300x365')
-	opcPsf.createLabel('PSF parameters ',20,70)
-	opcPsf.createLabel('Ex_wavelenCh1:                         [nm]',20,100)
-	opcPsf.createLabel('Em_wavelenCh1:                       [nm] ',20,130)
-	
-	opcPsf.createLabel('Num_aperture:',20,160)
-	opcPsf.createLabel('Pinhole_radius:                           [um]',20,190)
-	opcPsf.createLabel('Magnification:',20,220)
-	opcPsf.createLabel('Refr_index:',20,250)
-	opcPsf.createLabel('Dim_z:                                         [um]',20,280)
-	opcPsf.createLabel('Dim_xy:                                         [um]',20,310)
-	
-	entryex_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['ExcitationWavelength'],160,100)
-	entryem_wavelench1 = opcPsf.createEntry(metadata['Channel 1 Parameters']['EmissionWavelength'],160,130)
-	
-	entrynum_aperture = opcPsf.createEntry(metadata['num_aperture'],160,160)
-	entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,190)
-	entrymagnification = opcPsf.createEntry(metadata['magnification'],160,220)
-	entryrefr_index = opcPsf.createEntry(metadata['refr_index'],160,250)
-	entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,280)
-	entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,310)		
+	entrynum_aperture = opcPsf.createEntry(metadata['num_aperture'],160,posy)
+	entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,posy+30)
+	entrymagnification = opcPsf.createEntry(metadata['magnification'],160,posy+60)
+	entryrefr_index = opcPsf.createEntry(metadata['refr_index'],160,posy+90)
+	entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,posy+120)
+	entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,posy+150)
 
 def psf_parameters(flg=True):
 	global dropdownImg, dropdownPSF, metadata, opcPsf, opcimg, index
@@ -108,7 +77,7 @@ def psf_parameters(flg=True):
 			selectFile()
 		else: 
 			if (len(it.windows_img)==1):
-				index = -1		
+				index = -1
 			nameFile = it.windows_img[index].nameFile
 			pathFile = it.windows_img[index].path
 
@@ -144,17 +113,17 @@ def psf_parameters(flg=True):
 			
 			#Creation of the psf parameters window
 			if (it.windows_img[index].tensor_img.ndim==4):
-				psf_winmnyparmts()
+				psf_winparmts(numch = it.windows_img[index].tensor_img.shape[1])
 			elif (it.windows_img[index].tensor_img.ndim==3):
 			
 				if (istiffRGB(it.windows_img[index].tensor_img.shape)): 	#Matrix of the form (x,y,r)
-					psf_winolyparmts()
+					psf_winparmts()
 				elif (it.windows_img[index].tensor_img.shape[0]>4): 		#Matrix of the form (z,x,y)
-					psf_winolyparmts()
-				else: 											#Matrix of the form (c,x,y)
-					psf_winmnyparmts()
+					psf_winparmts()
+				else: 												#Matrix of the form (c,x,y)
+					psf_winparmts(numch = it.windows_img[index].tensor_img.shape[0])
 			else: 
-				psf_winolyparmts()
+				psf_winparmts()
 
 			
 			opcPsf.createLabel('PSF type: ',20,10)
@@ -240,24 +209,21 @@ def deconvolution_event():
 		messagebox.showinfo(message='There are empty parameters, please check')
 	
 def createpsf_event():
-	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
+	global entryex_wavelen, entryem_wavelen
 	global multipsf, opcPsf, entryIterations, dropdownPSF, metadata, entryrefr_index, opcDeconv
 	
-	entryex = (entryex_wavelench1, entryex_wavelench2, entryex_wavelench3, entryex_wavelench4)
-	entryem = (entryem_wavelench1, entryem_wavelench2, entryem_wavelench3, entryem_wavelench4)
-	
 	# Extracting available metadata
-	for ch in range(4):
-		if(entryex[ch]!=None):
+	for ch in range(len(entryex_wavelen)):
+		if(entryex_wavelen[ch]!=None):
 			try: 
-				metadata['Channel '+str(ch+1)+' Parameters']['ExcitationWavelength'] = float(entryex[ch].get())
+				metadata['Channel '+str(ch+1)+' Parameters']['ExcitationWavelength'] = float(entryex_wavelen[ch].get())
 			except:
 				print('Error: ',sys.exc_info()[0])
 			
-	for ch in range(4):
-		if(entryem[ch]!=None):
+	for ch in range(len(entryem_wavelen)):
+		if(entryem_wavelen[ch]!=None):
 			try:
-				metadata['Channel '+str(ch+1)+' Parameters']['EmissionWavelength'] = float(entryem[ch].get())
+				metadata['Channel '+str(ch+1)+' Parameters']['EmissionWavelength'] = float(entryem_wavelen[ch].get())
 			except:
 				print('Error: ',sys.exc_info()[0])
 	
@@ -290,7 +256,9 @@ def createpsf_event():
 		else: 
 			messagebox.showinfo(message='Quotient of the numeric aperture ' +str(metadata['num_aperture'])+ ' and refractive index ' +str(metadata['refr_index'])+ ' is greater than 1.0')
 	except ZeroDivisionError:
-		messagebox.showinfo(message='Error, there are parameters that cannot be equal to zero')		
+		messagebox.showinfo(message='Error, there are parameters that cannot be equal to zero')
+	except ValueError:
+		messagebox.showinfo(message='Matrix (x, y) is not the same size')	
 	
 def neural_network_event(flg=True):
 	global tensor_deconv, opcimg, index
@@ -362,17 +330,21 @@ def interface():
 	it.createCommand(opc1, "Close windows", close_windows_event)
 	it.createCommand(opc1, "Exit", it.mainWindow.quit)
 	it.createCascade(menu, 'File', opc1)
-
-	opc2 = it.createOption(menu)
-	it.createCommand(opc2, "Deconvolution", psf_parameters)
-	it.createCommand(opc2, "Neural Network", neural_network_event)
-	it.createCommand(opc2, "TV Denoising", tvd_parameters)
-	#it.createCommand(opc2, "Zoom", mainWindow.quit)
-	it.createCascade(menu, 'Image', opc2)
 	
+	opc2 = it.createOption(menu)
+	it.createCommand(opc2, "Reshape", about_event)
+	#it.createCommand(opc2, "Zoom", mainWindow.quit)
+	it.createCascade(menu, 'Edit', opc2)
+
 	opc3 = it.createOption(menu)
-	it.createCommand(opc3, "About IFC Microscopy", about_event)
-	it.createCascade(menu, 'Help', opc3)	
+	it.createCommand(opc3, "Deconvolution", psf_parameters)
+	it.createCommand(opc3, "Neural Network", neural_network_event)
+	it.createCommand(opc3, "TV Denoising", tvd_parameters)
+	it.createCascade(menu, 'Image', opc3)
+	
+	opc4 = it.createOption(menu)
+	it.createCommand(opc4, "About IFC Microscopy", about_event)
+	it.createCascade(menu, 'Help', opc4)	
 
 	it.statusBar = it.createStatusBar()
 
