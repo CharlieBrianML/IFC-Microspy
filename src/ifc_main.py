@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ## ###############################################
 #
-# ifc_srm.py
+# ifc_main.py
 # Archivo principal
 #
 # Autor: Charlie Brian Monterrubio Lopez
@@ -21,7 +21,7 @@ import src.createPSF as cpsf
 import src.deconvolution as dv
 import src.tiff as tif
 import src.interfaceTools as it
-import src.sr
+import src.esrgan
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv, opcTVD, entryWeighttvd, entryrefr_index = (None,None,None,None,None,None,None, None, None, None)
 entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor, cmbxFile, opcimg = (None,None,None,None,None,None,None,None, None)
@@ -262,7 +262,7 @@ def createpsf_event():
 	
 def neural_network_event(flg=True):
 	global tensor_deconv, opcimg, index
-	from .sr import nn
+	from .esrgan import nn
 	opcimg = 'Neural Network'
 	try: 
 		if(len(it.windows_img)>1 and flg):

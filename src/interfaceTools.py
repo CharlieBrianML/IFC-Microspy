@@ -198,7 +198,8 @@ def createStringVar():
 def createStatusBar():
 	"""This function creates a status bar"""
 	global statusbar
-	statusbar = Label(mainWindow, text='IFC Microscopy v0.6.22', bd=1, relief=SUNKEN, anchor=W)
+	v = os.popen('git tag').read().split('\n')
+	statusbar = Label(mainWindow, text='IFC Microscopy '+v[0], bd=1, relief=SUNKEN, anchor=W)
 	statusbar.pack(side=BOTTOM, fill=X)
 	return statusbar
 	

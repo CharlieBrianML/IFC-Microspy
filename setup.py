@@ -9,5 +9,5 @@
 # ## ###############################################
 
 if __name__ == '__main__':
-	from src import ifc_srm
-	ifc_srm.interface()
+	from src import ifc_main
+	ifc_main.interface()

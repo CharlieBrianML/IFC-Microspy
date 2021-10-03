@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ## ###############################################
 #
-# sr.py
+# esrgan.py
 # Neural Network
 #
 # Autor: Charlie Brian Monterrubio Lopez
