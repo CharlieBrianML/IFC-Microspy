@@ -71,7 +71,31 @@ def tensorDenoisingTV(tensor,value):
 		for c in range(tensor.shape[1]):
 			for z in range(tensor.shape[0]):
 				img[z,c,:,:] = denoisingTV(tensor[z,c,:,:],value)
-	return img			
+	return img
+	
+def resizeTensor(tensor,x,y):
+	"""change the dimensions (x, y) of a tensor"""
+	if(tensor.ndim==2):
+		img = cv2.resize(tensor, (x,y), interpolation = cv2.INTER_LINEAR)
+	if(tensor.ndim==3):
+		if(istiffRGB(tensor.shape)):
+			img = np.zeros((x,y,tensor.shape[2]))
+			for r in range(tensor.shape[2]):
+				img[:,:,r] = cv2.resize(tensor[:,:,r], (x,y), interpolation = cv2.INTER_LINEAR)
+		else:
+			img = np.zeros((tensor.shape[0],x,y))
+			if(tensor.shape[0]>4):
+				for z in range(tensor.shape[0]):
+					img[z,:,:] = cv2.resize(tensor[z,:,:], (x,y), interpolation = cv2.INTER_LINEAR)
+			else:
+				for c in range(tensor.shape[0]):
+					img[c,:,:] = cv2.resize(tensor[c,:,:], (x,y), interpolation = cv2.INTER_LINEAR)
+	if(tensor.ndim==4):
+		img = np.zeros((tensor.shape[0],tensor.shape[1],x,y))
+		for c in range(tensor.shape[1]):
+			for z in range(tensor.shape[0]):
+				img[z,c,:,:] = cv2.resize(tensor[z,c,:,:], (x,y), interpolation = cv2.INTER_LINEAR)
+	return img				
 	
 def imgReadCv2(nameImg):
 	return cv2.imread(nameImg)

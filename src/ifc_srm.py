@@ -25,7 +25,7 @@ import src.sr
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv, opcTVD, entryWeighttvd, entryrefr_index = (None,None,None,None,None,None,None, None, None, None)
 entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor, cmbxFile, opcimg = (None,None,None,None,None,None,None,None, None)
-entryem_wavelen, entryex_wavelen = (None, None)
+entryem_wavelen, entryex_wavelen, opcResize, entryX, entryY = (None, None,None, None, None)
 index = -1
 
 metadata_init = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
@@ -271,9 +271,45 @@ def neural_network_event(flg=True):
 			if (len(it.windows_img)==1):
 				index = -1		
 			nn(it.windows_img[index].tensor_img, index)
-	#except IndexError:
-	except ZeroDivisionError:	
+	except IndexError:
 		messagebox.showinfo(message='There is no input parameter')
+		
+def resize_parameters(flg=True):
+	global opcimg, index, opcResize, entryX, entryY
+	opcimg = 'Reshape'
+	if(len(it.windows_img)>0):
+		if(len(it.windows_img)>1 and flg):
+			selectFile()
+		else: 
+			if (len(it.windows_img)==1):
+				index = -1
+			name = it.windows_img[index].nameFile
+			opcResize = it.NewWindow('Resize','230x140') #Objeto de la clase NewWindow
+			
+			opcResize.createLabel('File: ',20,20)
+			opcResize.createLabel('X: ',20,50)
+			opcResize.createLabel('Y: ',20,80)
+			
+			entryimg = opcResize.createEntry(name,80,20, 15,True)
+			entryX = opcResize.createEntry('',80,50,15)
+			entryY = opcResize.createEntry('',80,80,15)
+			opcResize.createButton('Resize', resize_event, 'bottom')				
+	else:
+		messagebox.showinfo(message='There is no input parameter')	
+		
+def resize_event():
+	import src.imageFunctions as imf
+	try:
+		x, y = (int(entryX.get()),int(entryY.get()))
+		if(x>50 and y>50):
+			opcResize.destroy()
+			it.printMessage('Starting rescaled: ')
+			it.windows_img[index].tensor_img = imf.resizeTensor(it.windows_img[index].tensor_img, x,y)
+			it.printMessage('Completed: size ('+str(x)+','+str(y)+')')
+		else: 
+			messagebox.showinfo(message='Values not accepted, you must enter a minimum value of 50')	
+	except ValueError:
+		messagebox.showinfo(message='There is no input parameter')		
 		
 def selectFile():
 	"""This function select a file"""
@@ -299,6 +335,8 @@ def selectFile_event():
 		neural_network_event(flg=False)
 	if(opcimg=='TV Denoising'):
 		tvd_parameters(flg=False)
+	if(opcimg=='Reshape'):
+		resize_parameters(flg=False)		
 		
 def about_event():
 	import cv2
@@ -313,9 +351,8 @@ def close_windows_event():
 	
 def on_closing():
 	import os
-	if not((messagebox.askyesno(message="Do you want to save the generated cache?", title="Cache"))):
-		if (os.path.isdir('src/cache/training_set')):
-			rmtree("src/cache/training_set")
+	if (os.path.isdir('src/cache/training_set')):
+		rmtree("src/cache/training_set")
 	it.mainWindow.destroy()	
 		
 def interface():
@@ -332,7 +369,7 @@ def interface():
 	it.createCascade(menu, 'File', opc1)
 	
 	opc2 = it.createOption(menu)
-	it.createCommand(opc2, "Reshape", about_event)
+	it.createCommand(opc2, "Resize", resize_parameters)
 	#it.createCommand(opc2, "Zoom", mainWindow.quit)
 	it.createCascade(menu, 'Edit', opc2)
 

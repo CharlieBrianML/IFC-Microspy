@@ -108,8 +108,10 @@ def tensor_to_array(image):
 def nn(img_tensor, index):
 	import tifffile
 	import src.interfaceTools as it
+	from shutil import rmtree
 	from .imageFunctions import istiffRGB
 	from tkinter import messagebox
+	import os
 	global model
 	
 	if(len(it.windows_img)>0):
@@ -117,46 +119,45 @@ def nn(img_tensor, index):
 		if not(os.path.isdir('src/cache/training_set')):
 			os.mkdir('src/cache/training_set')
 			
-		img_path = 'src/cache/training_set/training_'+it.windows_img[-1].nameWindow
+		img_path = 'src/cache/training_set/training_'+it.windows_img[index].nameWindow
 	
 		# Creation of the training set
-		if not(os.path.isdir(img_path)):
-			os.mkdir(img_path)
-			print(img_tensor.shape)
-			
-			if (img_tensor.ndim == 2):
-				img = np.zeros((img_tensor.shape[0],img_tensor.shape[1],3))
-				img[:,:,0] = np.uint8(img_tensor)
-				img[:,:,1] = np.uint8(img_tensor)
-				img[:,:,2] = np.uint8(img_tensor)
-				cv2.imwrite(img_path+'/1.jpg', img)
-			if (img_tensor.ndim == 3):
-				if (istiffRGB(img_tensor.shape)):
-					cv2.imwrite(img_path+'/1.jpg', img_tensor)
-				elif (img_tensor.shape[0]>4):
-					img = np.zeros((img_tensor.shape[1],img_tensor.shape[2],3))
-					for z in range(img_tensor.shape[0]):
-						img[:,:,0] = np.uint8(img_tensor[z,:,:])
-						img[:,:,1] = np.uint8(img_tensor[z,:,:])
-						img[:,:,2] = np.uint8(img_tensor[z,:,:])			
-						cv2.imwrite(img_path+'/'+str(z+1)+'.jpg', img)
-				else:
-					img = np.zeros((img_tensor.shape[1],img_tensor.shape[2],3))
-					for c in range(img_tensor.shape[0]):
-						img[:,:,0] = np.uint8(img_tensor[c,:,:])
-						img[:,:,1] = np.uint8(img_tensor[c,:,:])
-						img[:,:,2] = np.uint8(img_tensor[c,:,:])			
-						cv2.imwrite(img_path+'/'+str(c+1)+'.jpg', img)					
-					
-			if (img_tensor.ndim == 4):
-				img = np.zeros((img_tensor.shape[2],img_tensor.shape[3],3))
+		#if not(os.path.isdir(img_path)):
+		os.mkdir(img_path)
+		print(img_tensor.shape)
+		
+		if (img_tensor.ndim == 2):
+			img = np.zeros((img_tensor.shape[0],img_tensor.shape[1],3))
+			img[:,:,0] = np.uint8(img_tensor)
+			img[:,:,1] = np.uint8(img_tensor)
+			img[:,:,2] = np.uint8(img_tensor)
+			cv2.imwrite(img_path+'/1.jpg', img)
+		if (img_tensor.ndim == 3):
+			if (istiffRGB(img_tensor.shape)):
+				cv2.imwrite(img_path+'/1.jpg', img_tensor)
+			elif (img_tensor.shape[0]>4):
+				img = np.zeros((img_tensor.shape[1],img_tensor.shape[2],3))
+				for z in range(img_tensor.shape[0]):
+					img[:,:,0] = np.uint8(img_tensor[z,:,:])
+					img[:,:,1] = np.uint8(img_tensor[z,:,:])
+					img[:,:,2] = np.uint8(img_tensor[z,:,:])			
+					cv2.imwrite(img_path+'/'+str(z+1)+'.jpg', img)
+			else:
+				img = np.zeros((img_tensor.shape[1],img_tensor.shape[2],3))
+				for c in range(img_tensor.shape[0]):
+					img[:,:,0] = np.uint8(img_tensor[c,:,:])
+					img[:,:,1] = np.uint8(img_tensor[c,:,:])
+					img[:,:,2] = np.uint8(img_tensor[c,:,:])			
+					cv2.imwrite(img_path+'/'+str(c+1)+'.jpg', img)			
 				
-				for c in range(img_tensor.shape[1]):
-					for z in range(img_tensor.shape[0]):
-						img[:,:,0] = np.uint8(img_tensor[z,c,:,:])
-						img[:,:,1] = np.uint8(img_tensor[z,c,:,:])
-						img[:,:,2] = np.uint8(img_tensor[z,c,:,:])
-						cv2.imwrite(img_path+'/'+str(c+1)+'_'+str(z+1)+'.jpg', img)
+		if (img_tensor.ndim == 4):
+			img = np.zeros((img_tensor.shape[2],img_tensor.shape[3],3))	
+			for c in range(img_tensor.shape[1]):
+				for z in range(img_tensor.shape[0]):
+					img[:,:,0] = np.uint8(img_tensor[z,c,:,:])
+					img[:,:,1] = np.uint8(img_tensor[z,c,:,:])
+					img[:,:,2] = np.uint8(img_tensor[z,c,:,:])
+					cv2.imwrite(img_path+'/'+str(c+1)+'_'+str(z+1)+'.jpg', img)
 		
 		img_output = np.zeros(img_tensor.shape)
 		imgs = os.listdir(img_path)
@@ -210,7 +211,7 @@ def nn(img_tensor, index):
 			import src.interfaceTools as it
 			
 			(m,s) = it.getFormatTime(time.time() - start)
-			it.printMessage("Runtime: "+str(m)+" minutes, "+str(s)+" seconds")		
+			it.printMessage("Runtime: "+str(m)+" minutes, "+str(s)+" seconds")	
 			
 			nnimg = it.NewWindow('Neural Network: '+it.windows_img[index].nameWindow, image = True)
 			if (display1f):
@@ -219,7 +220,16 @@ def nn(img_tensor, index):
 				nnimg.desplay_image(img_output)
 			nnimg.tensor_img = img_output	
 			it.windows_img.append(nnimg)
+			
 		except ValueError:
-			messagebox.showinfo(message='Matrix (x, y) is not the same size')			
+			messagebox.showinfo(message='The matrix (x, y) is not the same size or its size is odd')
+			if (os.path.isdir('src/cache/training_set')):
+				rmtree("src/cache/training_set")
+		#except InternalError:
+		# except Exception:	
+			# messagebox.showinfo(message='CUDA runtime implicit initialization on GPU failed. Status: out of memory')
+		finally:	
+			if (os.path.isdir('src/cache/training_set')):
+				rmtree("src/cache/training_set")
 	else:
 		messagebox.showinfo(message='There is no input parameter')
