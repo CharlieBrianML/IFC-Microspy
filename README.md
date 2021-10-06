@@ -1,6 +1,6 @@
 ### IFC_Microscopy
-It is a software with a graphical interface, designed for the processing of microscopy images. It is based on Python 3
-Supports oib, tif, bmp, png, jpg formats
+It is a software with a graphical interface, designed for the processing of microscopy images. It is based on Python 3.<br>
+Supports oib, tif, bmp, png, jpg formats.<br>
 
 ## Tools
 It has the following tools:
@@ -26,15 +26,15 @@ In order to run the software with Python it is necessary to have the following m
 - progress
 
 ## Execution
-From the console enter python3 setup.py
-You will see an interface like the following
+From the console enter python3 setup.py<br>
+<br>You will see an interface like the following:<br>
+![](https://github.com/CharlieBrianML/IFC_SRM/blob/master/media/interface.png)<br>
+Below are some results obtained using deconvolution and ESRGAN<br>
 ![](https://github.com/CharlieBrianML/IFC_SRM/blob/master/media/comparison.png)
-Below are some results obtained using deconvolution and ESRGAN
-![](https://github.com/CharlieBrianML/IFC_SRM/blob/master/media/interface.png)
 
 ## Contact me at
-Charlie Brian Monterrubio López
-Computer Engineering Graduate
-Cellular Physiology Institute, UNAM
-charls_brian@hotmail.es
-charlsbrian197@gmail.com
+Charlie Brian Monterrubio López<br>
+Computer Engineering Graduate<br>
+Cellular Physiology Institute, UNAM<br>
+charls_brian@hotmail.es<br>
+charlsbrian197@gmail.com<br>
