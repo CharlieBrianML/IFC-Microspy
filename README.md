@@ -1,8 +1,40 @@
-### IFC_SRM
-Es un software basado en inteligencia artificial que aplica las tecnicas de super resolución a imágenes de microspopia:
-- No Posee una intefaz gráfica que facilita la interacción con el usuario.
-- Admite imagenes en formato .jpg, .png, .bmp 
-- Hace uso de tensorflow, una biblioteca optimizada para trabajar con tensores.
-- Hace uso de las redes gererativas adversarias (GAN).
+### IFC_Microscopy
+It is a software with a graphical interface, designed for the processing of microscopy images. It is based on Python 3
+Supports oib, tif, bmp, png, jpg formats
 
-![](https://media.biocompare.com/m/37/article/350086.jpg)
+## Tools
+It has the following tools:
+- Richardson-Lucy deconvolution
+- Quality improvement using ESGAN
+- Total variation noise elimination
+
+## Installation
+In order to run the software with Python it is necessary to have the following modules installed:
+- tkinter
+- tensorflow
+- tensorflow_hub
+- flowdec
+- numpy
+- matplotlib
+- cv2
+- skimage
+- PIL
+- tiff
+- psf
+- oiffile
+- shutil
+- progress
+
+## Execution
+From the console enter python3 setup.py
+You will see an interface like the following
+![](https://github.com/CharlieBrianML/IFC_SRM/blob/master/media/comparison.png)
+Below are some results obtained using deconvolution and ESRGAN
+![](https://github.com/CharlieBrianML/IFC_SRM/blob/master/media/interface.png)
+
+## Contact me at
+Charlie Brian Monterrubio López
+Computer Engineering Graduate
+Cellular Physiology Institute, UNAM
+charls_brian@hotmail.es
+charlsbrian197@gmail.com
