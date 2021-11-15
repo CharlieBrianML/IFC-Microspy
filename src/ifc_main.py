@@ -95,7 +95,7 @@ def psf_parameters(flg=True):
 					if (len(metadata)==0):
 						metadata = metadata_init
 					print(metadata)
-				except KeyError:
+				except (KeyError, TypeError):
 					messagebox.showinfo(message='No metadata found, please fill in the parameters manually')
 					metadata = metadata_init
 					if (it.windows_img[index].tensor_img.ndim>2):
@@ -233,13 +233,16 @@ def createpsf_event():
 	metadata['refr_index'] = float(entryrefr_index.get())
 	metadata['Axis 3 Parameters Common']['EndPosition'] = float(entrydimz.get())
 	metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
+	#Quitar esta linea 
+	#ValueError: could not broadcast input array from shape (2,2) into shape (512,512) - Al leer archivo .lsm
+	metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[-2]
 		
 	try:
 		if ((metadata['num_aperture']/metadata['refr_index'])<=1.0):
 
 			psftype = dropdownPSF.current()
 			
-			multipsf = cpsf.shape_psf(it.windows_img[index].tensor_img,metadata, psftype)
+			multipsf = cpsf.shape_psf(it.windows_img[index].tensor_img, metadata, psftype)
 			opcPsf.destroy()
 			
 			opcDeconv = it.NewWindow('Richardson-Lucy Deconvolution','300x150') #Objeto de la clase NewWindow
@@ -255,7 +258,7 @@ def createpsf_event():
 			opcDeconv.createButtonXY('Start', deconvolution_event, 100, 110)	
 		else: 
 			messagebox.showinfo(message='Quotient of the numeric aperture ' +str(metadata['num_aperture'])+ ' and refractive index ' +str(metadata['refr_index'])+ ' is greater than 1.0')
-	except ZeroDivisionError:
+	except (ZeroDivisionError, TypeError):
 		messagebox.showinfo(message='Error, there are parameters that cannot be equal to zero')
 	except ValueError:
 		messagebox.showinfo(message='Matrix (x, y) is not the same size')	

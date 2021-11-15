@@ -40,11 +40,11 @@ infoFile = {}
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""
 	global file, tensor_img, panelImg
-	filepath = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('jpg files','*.jpg')))
+	filepath = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('lsm files','*.lsm'),('tiff files','*.tiff'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('jpg files','*.jpg')))
 	if(len(filepath)>0):
 		try:
 			nameFile = filepath.split('/')[-1]
-			if(os.path.splitext(nameFile)[1]=='.tif'):
+			if(os.path.splitext(nameFile)[1]=='.tif' or os.path.splitext(nameFile)[1]=='.tiff' or os.path.splitext(nameFile)[1]=='.lsm'):
 				tensor_img = tif.readTiff(filepath)
 				from src.imageFunctions import istiffRGB
 				if(not(istiffRGB(tensor_img.shape))):
