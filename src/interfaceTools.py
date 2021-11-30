@@ -149,7 +149,7 @@ def createWindowMain():
 	# Asigna un color de fondo a la ventana. 
 	mainWindow.configure(bg = 'beige')
 	# Asigna un título a la ventana
-	mainWindow.title('IFC Microscopy')
+	mainWindow.title('IFC Microspy')
 	#mainWindow.iconbitmap('icon/ifc.ico')
 	mainWindow.tk.call('wm', 'iconphoto', mainWindow._w, PhotoImage(file='src/icon/ifc.png'))
 	mainWindow.resizable(width=False,height=False)
@@ -199,7 +199,7 @@ def createStatusBar():
 	"""This function creates a status bar"""
 	global statusbar
 	v = os.popen('git tag').read().split('\n')
-	statusbar = Label(mainWindow, text='IFC Microscopy '+v[0], bd=1, relief=SUNKEN, anchor=W)
+	statusbar = Label(mainWindow, text='IFC Microspy '+v[0], bd=1, relief=SUNKEN, anchor=W)
 	statusbar.pack(side=BOTTOM, fill=X)
 	return statusbar
 	
