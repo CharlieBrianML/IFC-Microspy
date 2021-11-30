@@ -26,7 +26,7 @@ In order to run the software with Python it is necessary to have the following m
 - progress
 
 ## Execution
-From the console enter python3 setup.py<br>
+From the console enter python3 microspy.py<br>
 <br>You will see an interface like the following:<br>
 ![](https://github.com/CharlieBrianML/IFC-Microspy/blob/master/media/interface.png)<br>
 Below are some results obtained using deconvolution and ESRGAN<br>
