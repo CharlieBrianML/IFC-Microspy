@@ -36,11 +36,13 @@ panelImg = None
 cmbxFile, opcSF = (None, None)
 windows_img = []
 infoFile = {}
+currentDir = os.getcwd()
 
 def openFile():
 	"""This function open files of type .oib .tif and .bmp"""
-	global file, tensor_img, panelImg
-	filepath = fd.askopenfilename(initialdir = os.getcwd(), title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('lsm files','*.lsm'),('tiff files','*.tiff'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('jpg files','*.jpg')))
+	global file, tensor_img, panelImg, currentDir
+	filepath = fd.askopenfilename(initialdir = currentDir, title = 'Select a file', defaultextension = '*.*', filetypes = (('oib files','*.oib'),('lsm files','*.lsm'),('tiff files','*.tiff'),('tif files','*.tif'),('bmp files','*.bmp'),('png files','*.png'),('jpg files','*.jpg')))
+	currentDir = filepath
 	if(len(filepath)>0):
 		try:
 			nameFile = filepath.split('/')[-1]
@@ -93,7 +95,7 @@ def saveFile():
 		messagebox.showinfo(message='No file has been opened')
 	
 def saveFileEvent():
-	global cmbxFile, opcSF
+	global cmbxFile, opcSF, currentDir
 	import tifffile
 	import os
 	import numpy as np
@@ -104,12 +106,14 @@ def saveFileEvent():
 	
 	try:
 		if(image.ndim==4):
-			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
+			savepath = fd.asksaveasfilename(initialdir = currentDir,title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
+			currentDir = filepath
 			if (savepath!=''):
 				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
 				printMessage('Saved file: '+savepath)
 		if(image.ndim==3):
-			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
+			savepath = fd.asksaveasfilename(initialdir = currentDir,title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
+			currentDir = filepath
 			if(not(istiffRGB(image.shape))):			
 				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
 				printMessage('Saved file: '+savepath)
@@ -117,7 +121,8 @@ def saveFileEvent():
 				cv2.imwrite(savepath, image)
 				printMessage('Saved file: '+savepath)	
 		if(image.ndim==2):	
-			savepath = fd.asksaveasfilename(initialdir = os.getcwd(),title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
+			savepath = fd.asksaveasfilename(initialdir = currentDir,title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
+			currentDir = filepath
 			cv2.imwrite(savepath, image)
 			printMessage('Saved file: '+savepath)
 		opcSF.destroy()	
