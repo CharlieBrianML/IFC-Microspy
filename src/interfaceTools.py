@@ -20,6 +20,7 @@ import cv2
 import os
 import src.oibread as oib
 import src.tiff as tif
+from .imageFunctions import istiffRGB
 
 # Define la ventana principal de la aplicación
 mainWindow = Tk() 
@@ -217,7 +218,7 @@ class NewWindow:
 			self.nameWindow = self.nameFile.split('.')[0]
 			self.path = nameWindow
 			self.img, self.tensor_img = (None, None)
-			self.axisz_max, self.axisc_max, self.posz, self.posc = (0, 0, 0, 0)
+			self.axisz_max, self.axisc_max, self.posz, self.posc, self.percent = (0, 0, 0, 0, 100)
 		else: 
 			self.nameWindow = nameWindow
 			self.nameFile, self.path = (None, None)
@@ -243,20 +244,27 @@ class NewWindow:
 		self.window.destroy()
 		
 	def placeImage(self,img):
-		resized = self.resize_image_percent(img, 60)
-		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
-		self.panel = Label(self.window, image = self.img)
-		self.panel.image = self.img
-		self.panel.pack()
+		self.img = img
+		self.tensor_img = img
+		self.validateSize()
+		self.createStatusBarOne()
+		resized = self.resize_image_percent(img, self.percent)
+		
+		imageTk = ImageTk.PhotoImage(image=Image.fromarray(resized))
+		self.panelImg = Label(self.window, image = imageTk)
+		self.panelImg.image = imageTk
+		self.panelImg.pack()
+		ttk.Button(self.window, text='+', command=self.increase_size).place(x=0,y=0,width=20,height=20)
+		ttk.Button(self.window, text='-', command=self.decrease_size).place(x=25,y=0,width=20,height=20)
 
 	def placeImageTensor(self,img):
 		
 		# resize image
-		resized = self.resize_image_percent(img, 60)
+		resized = self.resize_image_percent(img, self.percent)
 		
-		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
-		self.panel = Label(self.window, image = self.img)
-		self.panel.image = self.img
+		imageTk = ImageTk.PhotoImage(image=Image.fromarray(resized))
+		self.panel = Label(self.window, image = imageTk)
+		self.panel.image = imageTk
 		self.panel.pack()
 		return self.panel
 		
@@ -322,7 +330,13 @@ class NewWindow:
 		return self.scrollbarc
 		
 	def createStatusBar(self):
-		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)
+		self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(self.percent)+'%'
+		self.statusbar = Label(self.window, text=self.text, bd=1, relief=SUNKEN, anchor=W)
+		self.statusbar.pack(side=TOP, fill=X)
+		return self.statusbar
+
+	def createStatusBarOne(self):
+		self.text = '\tx:'+str(self.img.shape[0])+' y:'+str(self.img.shape[1])+' '+str(self.percent)+'%'
 		self.statusbar = Label(self.window, text=self.text, bd=1, relief=SUNKEN, anchor=W)
 		self.statusbar.pack(side=TOP, fill=X)
 		return self.statusbar
@@ -352,13 +366,13 @@ class NewWindow:
 			self.posz = self.posz + 1
 			
 		print(self.posc,self.posz)
-		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)
+		self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(self.percent)+'%'
 		self.statusbar.configure(text = self.text)
-		resized = self.resize_image_percent(self.tensor_img[self.posz,self.posc,:,:],60)
-		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
+		resized = self.resize_image_percent(self.tensor_img[self.posz,self.posc,:,:],self.percent)
+		imageTk = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
-		self.panelImg['image'] = self.img
-		self.panelImg.image = self.img
+		self.panelImg['image'] = imageTk
+		self.panelImg.image = imageTk
 		self.scrollbarz.config(command=self.listboxz.yview(self.posz))	
 		
 	def scrollImagec(self, *args):
@@ -369,13 +383,13 @@ class NewWindow:
 			self.posc = self.posc + 1
 			
 		print(self.posc,self.posz)
-		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)
+		self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(self.percent)+'%'
 		self.statusbar.configure(text = self.text)
-		resized = self.resize_image_percent(self.tensor_img[self.posz,self.posc,:,:],60)
-		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
+		resized = self.resize_image_percent(self.tensor_img[self.posz,self.posc,:,:],self.percent)
+		imageTk = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
-		self.panelImg['image'] = self.img
-		self.panelImg.image = self.img			
+		self.panelImg['image'] = imageTk
+		self.panelImg.image = imageTk	
 		self.scrollbarc.config(command=self.listboxc.yview(self.posc))	
 		
 	def scrollImagecs(self, *args):
@@ -386,26 +400,133 @@ class NewWindow:
 			self.posc = self.posc + 1
 			
 		print(self.posc,self.posz)
-		self.text = 'c:'+str(self.posc+1)+'/'+str(self.axisc_max)
+		self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' '+str(self.percent)+'%'
 		self.statusbar.configure(text = self.text)
-		resized = self.resize_image_percent(self.tensor_img[self.posc,:,:],60)
-		self.img = ImageTk.PhotoImage(image=Image.fromarray(resized))
+		resized = self.resize_image_percent(self.tensor_img[self.posc,:,:],self.percent)
+		imageTk = ImageTk.PhotoImage(image=Image.fromarray(resized))
 
-		self.panelImg['image'] = self.img
-		self.panelImg.image = self.img			
-		self.scrollbarc.config(command=self.listboxc.yview(self.posc))		
+		self.panelImg['image'] = imageTk
+		self.panelImg.image = imageTk		
+		self.scrollbarc.config(command=self.listboxc.yview(self.posc))
 		
 	def desplay_image(self, tensor_img):
 		self.tensor_img = tensor_img
 		if tensor_img.ndim == 4:
 			self.update_axes(tensor_img.shape[1],tensor_img.shape[0])
+			self.validateSize()
 			self.createStatusBar()
 			scrollz = self.scrollbarz(tensor_img.shape[0]-1)
 			scrollc = self.scrollbarc(tensor_img.shape[1]-1)
 			self.panelImg = self.placeImageTensor(tensor_img[0,0,:,:])
+			ttk.Button(self.window, text='+', command=self.increase_size).place(x=0,y=0,width=20,height=20)
+			ttk.Button(self.window, text='-', command=self.decrease_size).place(x=25,y=0,width=20,height=20)
 		
 		if tensor_img.ndim == 3:
 			self.update_axes(tensor_img.shape[0],0)
+			self.validateSize()
 			self.createStatusBar()
 			scrollc = self.scrollbarc(tensor_img.shape[0]-1, zscroll=False)
 			self.panelImg = self.placeImageTensor(tensor_img[0,:,:])
+			ttk.Button(self.window, text='+', command=self.increase_size).place(x=0,y=0,width=20,height=20)
+			ttk.Button(self.window, text='-', command=self.decrease_size).place(x=25,y=0,width=20,height=20)
+
+	def resize(self):
+		if(self.tensor_img.ndim==4):
+			self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(self.percent)+'%'
+			self.statusbar.configure(text = self.text)
+			resized = self.resize_image_percent(self.tensor_img[self.posz,self.posc,:,:],self.percent)
+		if(self.tensor_img.ndim==3):
+
+			if(istiffRGB(self.tensor_img.shape)):
+				self.text = '\tx:'+str(self.img.shape[0])+' y:'+str(self.img.shape[1])+' '+str(self.percent)+'%'
+				self.statusbar.configure(text = self.text)
+				resized = self.resize_image_percent(self.tensor_img,self.percent)
+			else:
+				if(self.tensor_img.shape[0]>4):
+					self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(self.percent)+'%'
+					self.statusbar.configure(text = self.text)
+					resized = self.resize_image_percent(self.tensor_img[self.posz,:,:],self.percent)
+				else:
+					self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(self.percent)+'%'
+					self.statusbar.configure(text = self.text)
+					resized = self.resize_image_percent(self.tensor_img[self.posc,:,:],self.percent)
+		if(self.tensor_img.ndim==2):
+			self.text = '\tx:'+str(self.img.shape[0])+' y:'+str(self.img.shape[1])+' '+str(self.percent)+'%'
+			self.statusbar.configure(text = self.text)
+			resized = self.resize_image_percent(self.tensor_img,self.percent)				
+		return resized
+		
+	def increase_size(self):
+		self.percent = self.percent+10
+		print('Percent',self.percent)
+		resized = self.resize()
+		
+		imageTk = ImageTk.PhotoImage(image=Image.fromarray(resized))
+		self.panelImg['image'] = imageTk
+		self.panelImg.image = imageTk
+		
+	def decrease_size(self):
+		self.percent = self.percent-10
+		print('Percent',self.percent)
+		resized = self.resize()
+		
+		imageTk = ImageTk.PhotoImage(image=Image.fromarray(resized))
+		self.panelImg['image'] = imageTk
+		self.panelImg.image = imageTk
+		
+	def updatePanel(self, oldSize):
+		import src.imageFunctions as imf
+		update_percent = int(self.tensor_img.shape[-2]*(self.percent/oldSize))
+		print('Percent: ', update_percent)
+		if(self.tensor_img.ndim==4):
+			self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(update_percent)+'%'
+			self.statusbar.configure(text = self.text)
+			imageTk = ImageTk.PhotoImage(image=Image.fromarray( self.resize_image_percent(self.tensor_img[self.posz,self.posc,:,:],update_percent) ))
+		if(self.tensor_img.ndim==3):
+			if(istiffRGB(self.tensor_img.shape)):
+				self.text = '\tx:'+str(self.img.shape[0])+' y:'+str(self.img.shape[1])+' '+str(update_percent)+'%'
+				self.statusbar.configure(text = self.text)			
+				imageTk = ImageTk.PhotoImage(image=Image.fromarray( self.resize_image_percent(self.tensor_img,update_percent) ))
+			else:
+				if(self.tensor_img.shape[0]>4):
+					self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(update_percent)+'%'
+					self.statusbar.configure(text = self.text)				
+					imageTk = ImageTk.PhotoImage(image=Image.fromarray( self.resize_image_percent(self.tensor_img[self.posz,:,:],update_percent) ))
+				else:
+					self.text = '\tc:'+str(self.posc+1)+'/'+str(self.axisc_max)+' z:'+str(self.posz+1)+'/'+str(self.axisz_max)+' '+str(update_percent)+'%'
+					self.statusbar.configure(text = self.text)				
+					imageTk = ImageTk.PhotoImage(image=Image.fromarray( self.resize_image_percent(self.tensor_img[self.posc,:,:],update_percent) ))
+			
+		if(self.tensor_img.ndim==2):
+			self.text = '\tx:'+str(self.img.shape[0])+' y:'+str(self.img.shape[1])+' '+str(update_percent)+'%'
+			self.statusbar.configure(text = self.text)		
+			imageTk = ImageTk.PhotoImage(image=Image.fromarray( self.resize_image_percent(self.tensor_img,update_percent) ))
+			
+		self.panelImg['image'] = imageTk
+		self.panelImg.image = imageTk
+		
+	def getResolution(self):
+		import platform
+		size = (None, None)
+		sistem = platform.system()
+		if(sistem=='Windows'):
+			import ctypes
+			user32 = ctypes.windll.user32
+			user32.SetProcessDPIAware()
+			size = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+		if(sistem=='Linux'):
+			args = ["xrandr", "-q", "-d", ":0"]
+			proc = subprocess.Popen(args,stdout=subprocess.PIPE)
+			for line in proc.stdout:
+				if isinstance(line, bytes):
+					line = line.decode("utf-8")
+					if "Screen" in line:
+						size = (int(line.split()[7]),  int(line.split()[9][:-1]))
+		print(size)
+		return size
+	
+	def validateSize(self):
+		screen_resolution = self.getResolution()
+		if(screen_resolution[1]<self.tensor_img.shape[-2]):
+			screen70percent = 70*(screen_resolution[1]/100)
+			self.percent= int(screen70percent*(100/self.tensor_img.shape[-2]))

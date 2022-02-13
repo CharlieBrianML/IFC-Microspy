@@ -307,7 +307,9 @@ def resize_event():
 		if(x>50 and y>50):
 			opcResize.destroy()
 			it.printMessage('Starting rescaled: ')
-			it.windows_img[index].tensor_img = imf.resizeTensor(it.windows_img[index].tensor_img, x,y)
+			oldSize = it.windows_img[index].tensor_img.shape[-2]
+			it.windows_img[index].tensor_img = np.uint8(imf.resizeTensor(it.windows_img[index].tensor_img, x,y))
+			it.windows_img[index].updatePanel(oldSize)
 			it.printMessage('Completed: size ('+str(x)+','+str(y)+')')
 		else: 
 			messagebox.showinfo(message='Values not accepted, you must enter a minimum value of 50')	
