@@ -10,11 +10,14 @@
 #
 # ## ###############################################
 
+from ctypes import resize
 from skimage.exposure import rescale_intensity
 from skimage.restoration import denoise_tv_chambolle
 import numpy as np
 import cv2
 
+inx0, inx1, inx2, inx3 = (None, None, None, None)
+inx0p, inx1p, inx2p, inx3p = (None, None, None, None)
 
 def normalizar(data):
 	"""Normalizes a data matrix"""
@@ -50,8 +53,12 @@ def denoisingTV(img,value):
 	"""Applies the total variation filter to an image"""
 	return denoise_tv_chambolle(img, weight=value)
 	
-def tensorDenoisingTV(tensor,value):
+def tensorDenoisingTV(tensor,value, metadata):
 	"""Applies the total variation filter to an image"""
+	global inx0, inx1, inx2, inx3, inx0p, inx1p, inx2p, inx3p
+	inx0, inx1, inx2, inx3 = (None, None, None, None)
+	inx0p, inx1p, inx2p, inx3p = (None, None, None, None)
+	
 	if(tensor.ndim==2):
 		img = denoisingTV(tensor,value)
 	if(tensor.ndim==3):
@@ -60,21 +67,51 @@ def tensorDenoisingTV(tensor,value):
 			for r in range(tensor.shape[2]):
 				img[:,:,r] = denoisingTV(tensor[:,:,r],value)
 		else:
-			if(tensor.shape[0]>4):
-				for z in range(tensor.shape[0]):
-					img[z,:,:] = denoisingTV(tensor[z,:,:],value)
-			else:
-				for c in range(tensor.shape[0]):
-					img[c,:,:] = denoisingTV(tensor[c,:,:],value)	
+			if('slices' in metadata):
+				for z in range(metadata['slices']['value']):
+					updateIndex(metadata['slices']['index'], z)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2] = denoisingTV(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2],value)
+			if('frames' in metadata):
+				for f in range(metadata['frames']['value']):
+					updateIndex(metadata['frames']['index'], f)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2] = denoisingTV(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2],value)					
+			if('channels' in metadata):
+				for c in range(metadata['channels']['value']):
+					updateIndex(metadata['channels']['index'], c)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2] = denoisingTV(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2],value)
 	if(tensor.ndim==4):
 		img = np.zeros(tensor.shape)
-		for c in range(tensor.shape[1]):
-			for z in range(tensor.shape[0]):
-				img[z,c,:,:] = denoisingTV(tensor[z,c,:,:],value)
+				
+		if(('channels' in metadata) and ('slices' in metadata)):
+			for c in range(metadata['channels']['value']):
+				updateIndex(metadata['channels']['index'], c)
+				for z in range(metadata['slices']['value']):
+					updateIndex(metadata['slices']['index'], z)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3] = denoisingTV(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3],value)
+		if(('channels' in metadata) and ('frames' in metadata)):
+			for c in range(metadata['channels']['value']):
+				updateIndex(metadata['channels']['index'], c)
+				for f in range(metadata['frames']['value']):
+					updateIndex(metadata['frames']['index'], f)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3] = denoisingTV(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3],value)
+		if(('frames' in metadata) and ('slices' in metadata)):
+			for f in range(metadata['frames']['value']):
+				updateIndex(metadata['frames']['index'], f)
+				for z in range(metadata['slices']['value']):
+					updateIndex(metadata['slices']['index'], z)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3] = denoisingTV(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3],value)
+	
+	img = img*(tensor.max()/img.max())
+	if (metadata['type']=='uint16'):
+		img = np.uint16(img)
 	return img
 	
-def resizeTensor(tensor,x,y):
+def resizeTensor(tensor,x,y, metadata):
 	"""change the dimensions (x, y) of a tensor"""
+	global inx0, inx1, inx2, inx3, inx0p, inx1p, inx2p, inx3p
+	inx0, inx1, inx2, inx3 = (None, None, None, None)
+	inx0p, inx1p, inx2p, inx3p = (None, None, None, None)	
+
 	if(tensor.ndim==2):
 		img = cv2.resize(tensor, (x,y), interpolation = cv2.INTER_LINEAR)
 	if(tensor.ndim==3):
@@ -82,43 +119,89 @@ def resizeTensor(tensor,x,y):
 			img = np.zeros((x,y,tensor.shape[2]))
 			for r in range(tensor.shape[2]):
 				img[:,:,r] = cv2.resize(tensor[:,:,r], (x,y), interpolation = cv2.INTER_LINEAR)
+			img = np.uint8(img)
 		else:
-			img = np.zeros((tensor.shape[0],x,y))
-			if(tensor.shape[0]>4):
-				for z in range(tensor.shape[0]):
-					img[z,:,:] = cv2.resize(tensor[z,:,:], (x,y), interpolation = cv2.INTER_LINEAR)
-			else:
-				for c in range(tensor.shape[0]):
-					img[c,:,:] = cv2.resize(tensor[c,:,:], (x,y), interpolation = cv2.INTER_LINEAR)
+			if('slices' in metadata):
+				img = np.zeros(getNewShape(tensor, metadata, x,y))
+				for z in range(metadata['slices']['value']):
+					updateIndex(metadata['slices']['index'], z)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2] = cv2.resize(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2].reshape((metadata['X'],metadata['Y'])), (x,y), interpolation = cv2.INTER_LINEAR)
+			if('frames' in metadata):
+				img = np.zeros(getNewShape(tensor, metadata, x,y))
+				for f in range(metadata['frames']['value']):
+					updateIndex(metadata['frames']['index'], f)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2] = cv2.resize(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2].reshape((metadata['X'],metadata['Y'])), (x,y), interpolation = cv2.INTER_LINEAR)					
+			if('channels' in metadata):
+				img = np.zeros(getNewShape(tensor, metadata, x,y))
+				for c in range(metadata['channels']['value']):
+					updateIndex(metadata['channels']['index'], c)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2] = cv2.resize(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2].reshape((metadata['X'],metadata['Y'])), (x,y), interpolation = cv2.INTER_LINEAR)
 	if(tensor.ndim==4):
-		img = np.zeros((tensor.shape[0],tensor.shape[1],x,y))
-		for c in range(tensor.shape[1]):
-			for z in range(tensor.shape[0]):
-				img[z,c,:,:] = cv2.resize(tensor[z,c,:,:], (x,y), interpolation = cv2.INTER_LINEAR)
-	return img				
+		if(('channels' in metadata) and ('slices' in metadata)):
+			img = np.zeros(getNewShape(tensor, metadata, x,y))
+			for c in range(metadata['channels']['value']):
+				updateIndex(metadata['channels']['index'], c)
+				for z in range(metadata['slices']['value']):
+					updateIndex(metadata['slices']['index'], z)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3] = cv2.resize(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3].reshape((metadata['X'],metadata['Y'])), (x,y), interpolation = cv2.INTER_LINEAR)
+		if(('channels' in metadata) and ('frames' in metadata)):
+			img = np.zeros(getNewShape(tensor, metadata, x,y))
+			for c in range(metadata['channels']['value']):
+				updateIndex(metadata['channels']['index'], c)
+				for f in range(metadata['frames']['value']):
+					updateIndex(metadata['frames']['index'], f)
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3] = cv2.resize(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3].reshape((metadata['X'],metadata['Y'])), (x,y), interpolation = cv2.INTER_LINEAR)
+		if(('frames' in metadata) and ('slices' in metadata)):
+			img = np.zeros(getNewShape(tensor, metadata, x,y))
+			for f in range(metadata['frames']['value']):
+				updateIndex(metadata['frames']['index'], f)
+				for z in range(metadata['slices']['value']):
+					updateIndex(metadata['slices']['index'], z)
+					resized = cv2.resize(tensor[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3].reshape((metadata['X'],metadata['Y'])), (x,y), interpolation = cv2.INTER_LINEAR)				
+					img[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3] = resized.reshape(img[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3].shape)
+	
+	if (metadata['type']=='uint16'):
+		img = np.uint16(img)
+	
+	return img
+
+def getNewShape(tensor, metadata, x,y):
+	shape = list(tensor.shape)
+	indxs = []
+	for i in range(len(shape)):
+		if(metadata['X']==shape[i] or metadata['Y']==shape[i]):
+			indxs.append(i)
+	shape[indxs[0]], shape[indxs[1]] = (x,y)
+	print('New shape: ', shape)
+	return tuple(shape)
 	
 def imgReadCv2(nameImg):
 	return cv2.imread(nameImg)
-
-def validatePSF(tiff,psf):
-	if(tiff.shape==psf.shape):
-		return True
 		
 def istiffRGB(tiff):
 	if(tiff[len(tiff)-1]==3):
 		return True
 	else:
 		return False
+	  
+def getMetadataImg(filepath):
+	"""Get metadata from a .tif file"""
+	matrix = cv2.imread(filepath)
+	metadata = {'path':filepath, 'name':filepath.split('/')[-1], 'tensor':matrix, 'type':matrix.dtype,'X':matrix.shape[0],'Y':matrix.shape[1], 'num_aperture':1.35, 'pinhole_radius':(120000/1000)/2, 'magnification': 0.75, 'refr_index':1.45}
+	return metadata
 	
-#Funcion para elegir el canal de la matriz       
-def elegirCanal(canal,matrix):
-	img = np.zeros((matrix.shape[0], matrix.shape[1],3))
-	if(canal=='R' or canal=='r'):
-		color=2
-	if(canal=='G' or canal=='g'):
-		color=1
-	if(canal=='B' or canal=='b'):
-		color=0
-	img[:,:,color]=matrix
-	return img
-	
+def updateIndex(index, pos):
+	global inx0, inx1, inx2, inx3, inx0p, inx1p, inx2p, inx3p
+
+	if (index==0):
+		inx0 = pos+1
+		inx0p = pos
+	if (index==1):
+		inx1 = pos+1
+		inx1p = pos
+	if (index==2):
+		inx2 = pos+1
+		inx2p = pos
+	if (index==3):
+		inx3 = pos+1
+		inx3p = pos	
