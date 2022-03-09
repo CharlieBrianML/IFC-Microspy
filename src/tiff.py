@@ -15,7 +15,7 @@ import tifffile
 import numpy as np
 from skimage import io
 
-dataDeconv = ('images', 'channels', 'slices', 'hyperstack','Info')
+basicinfo = ('images', 'channels', 'frames','slices', 'hyperstack','Info')
 datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'SizeY', 'SizeZ', 'ObjectiveLens NAValue', 'PinholeDiameter', 
 '[Channel 1 Parameters] ExcitationWavelength', '[Channel 2 Parameters] ExcitationWavelength', '[Channel 3 Parameters] ExcitationWavelength',
 '[Channel 4 Parameters] ExcitationWavelength', '[Reference Image Parameter] HeightConvertValue', '[Reference Image Parameter] WidthConvertValue', 
@@ -25,24 +25,7 @@ datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'S
 
 def readTiff(fileTiff):
 	"""Function that reads a .tif file"""
-	import numpy as np
-	matrix = io.imread(fileTiff)
-	
-	if(matrix.ndim==4):
-		matrix_aux=np.zeros((matrix.shape[0],matrix.shape[3],matrix.shape[1],matrix.shape[2]))
-		for c in range(matrix.shape[3]):
-			for z in range(matrix.shape[0]):
-				matrix_aux[z,c,:,:] = matrix[z,:,:,c]
-	elif(matrix.ndim==3):
-		if(matrix.shape[2]<4):
-			matrix_aux=np.zeros((matrix.shape[2],matrix.shape[0],matrix.shape[1]))
-			for c in range(matrix.shape[2]):
-				matrix_aux[c,:,:] = matrix[:,:,c]		
-		else:
-			matrix_aux = matrix
-	else:
-		matrix_aux = matrix			
-	return matrix_aux
+	return io.imread(fileTiff)
 	
 def imgtoTiff(imgs,savepath):
 	"""Function that converts a multidimensional array to a .tif file"""
@@ -87,22 +70,48 @@ def metadata_format(metadata):
 
 def getMetadata(filename):
 	"""Get metadata from a .tif file"""
-	metadata = []
-	try:
+	metadata = {'path':filename, 'name':filename.split('/')[-1], 'tensor':io.imread(filename), 'num_aperture':1.35, 'pinhole_radius':(120000/1000)/2, 'magnification': 0.75, 'refr_index':1.45}
+	try:	
 		with tifffile.TiffFile(filename) as tif:
 			imagej_hyperstack = tif.asarray()
 			imagej_metadata = tif.imagej_metadata #Diccionario con todos los metadatos
+
 		#Se obtienen los metadatos de interes
 		for tag in imagej_metadata:
-			if tag in dataDeconv:
-				metadata.append((tag, imagej_metadata[tag]))
-		#Se obtienen los metadatos restantes del atributo info
-		metadatainfo = metadata[4][1].split('\n')
-		metadata.pop()
-		for taginfo in metadatainfo:
-			for parameter in datainfo:
-				if parameter in taginfo:
-					metadata.append(tuple(taginfo.replace(" ", "").split('=')))
+			if tag in basicinfo:
+				if (tag == 'channels'or tag == 'frames'or tag == 'slices'):
+					metadata.update( {tag:{'value': imagej_metadata[tag], 'index': getIndexOfTuple(metadata['tensor'].shape,imagej_metadata[tag]) }} )
+				else:
+					metadata.update({tag: imagej_metadata[tag]})
+		
+		x,y = getSizeXY(metadata)
+		metadata.update(x)
+		metadata.update(y)
+		metadata.update({'type': metadata['tensor'].dtype})
+		if 'Info' in dict(metadata):
+			info = metadata['Info'].split('\n')
+			metadata.pop('Info')
+			metadatainfo = {}
+			for taginfo in info:
+				for parameter in datainfo:
+					if parameter in taginfo:
+						infosplitted = taginfo.replace(" ", "").split('=')
+						metadatainfo.update(  {infosplitted[0]:infosplitted[1]}  )
+			metadata.update(metadata_format(metadatainfo))
+		# print("Information found:",metadata.get())	
+		return metadata
 	except IndexError:
 		print('No metadata found')
-	return metadata_format(dict(metadata))
+	
+def getIndexOfTuple(shape, tag):
+	return shape.index(int(tag))
+	
+def getSizeXY(metadata):
+	shape = list(metadata['tensor'].shape)
+	if ('channels' in metadata):
+		shape.remove(metadata['channels']['value'])
+	if ('frames' in metadata):
+		shape.remove(metadata['frames']['value'])
+	if ('slices' in metadata):
+		shape.remove(metadata['slices']['value'])
+	return {'X': shape[0]},{'Y': shape[1]}
