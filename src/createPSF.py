@@ -13,6 +13,9 @@
 import numpy as np
 import psf
 
+inx0, inx1, inx2, inx3 = (None, None, None, None)
+inx0p, inx1p, inx2p, inx3p = (None, None, None, None)
+
 
 def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=False, display=False, psfvol=False, psftype=0, expsf=False, empsf=False, realshape=(0,0), **kwargs):
 	"""Calculate and save point spread functions."""
@@ -83,7 +86,8 @@ def psf_generator(cmap='hot', savebin=False, savetif=False, savevol=False, plot=
 		
 	
 	if psfvol:
-		psf_matrix = normalize_matrix(psf_matrix.volume())
+		# psf_matrix = normalize_matrix(psf_matrix.volume())
+		psf_matrix = psf_matrix.volume()
 		psf_matrix = psf_matrix[:realshape[0],:,:]
 		psf_matrix = psf_matrix[:,:realshape[1],:realshape[1]]
 	else: 
@@ -148,34 +152,67 @@ def constructpsf(metadata, channel, psf_vol, psftype):
 
 def shape_psf(tensor, metadata, psftype):
 	"""This function defines the dimensions that the psf will have"""
+	global inx0, inx1, inx2, inx3, inx0p, inx1p, inx2p, inx3p
+	inx0, inx1, inx2, inx3 = (None, None, None, None)
+	inx0p, inx1p, inx2p, inx3p = (None, None, None, None)
+	
 	dimtensor = tensor.ndim
-
-	if (dimtensor==4):
-		multipsf = np.zeros(tensor.shape)
-		for c in range(tensor.shape[1]):
-			print('\nGenerating psf channel: ',c)
-			multipsf[:,c,:,:] = constructpsf(metadata, c+1, True, psftype)
-	if (dimtensor==3):
-		import src.imageFunctions as imf
-		multipsf = np.zeros(tensor.shape)
-		#metadata['Axis 3 Parameters Common']['MaxSize']=0.0
-		if(imf.istiffRGB(tensor.shape)):
-			print('Generating psf: ')
-			psf = constructpsf(metadata, 1, False, psftype)
-			for crgb in range(3):
-				multipsf[:,:,crgb] = psf
-		else:	
-			if (tensor.shape[0]>4):
-				multipsf = constructpsf(metadata, 1, True, psftype)
-			else:	
-				for c in range(tensor.shape[0]):
-					print('\nGenerating psf channel: ',c)
-					multipsf[c,:,:] = constructpsf(metadata, c+1, False, psftype)	
 	
 	if (dimtensor==2):
-		multipsf = np.zeros(tensor.shape)
 		multipsf = constructpsf(metadata, 1, False, psftype)
+			
+	if (dimtensor==3):
+		import src.imageFunctions as imf
+		if(imf.istiffRGB(tensor.shape)):
+			print('Generating psf: ')
+			multipsf = constructpsf(metadata, 1, False, psftype)
+		else:	
+			if ('slices' in metadata):
+				multipsf = constructpsf(metadata, 1, True, psftype)
+			if ('frames' in metadata):
+				multipsf = constructpsf(metadata, 1, False, psftype)
+			if ('channels' in metadata):
+				multipsf = np.zeros(tensor.shape)
+				for c in range(metadata['channels']['value']):
+					print('\nGenerating psf channel: ',c)
+					updateIndex(metadata['channels']['index'], c)
+					multipsf[inx0p:inx0,inx1p:inx1,inx2p:inx2] = constructpsf(metadata, c+1, False, psftype)
+					
+	if (dimtensor==4):
+		if(('channels' in metadata) and ('slices' in metadata)):
+			multipsf = np.zeros(tensor.shape)
+			for c in range(metadata['channels']['value']):
+				print('\nGenerating psf channel: ',c)
+				updateIndex(metadata['channels']['index'], c)
+				multipsf[inx0p:inx0,inx1p:inx1,inx2p:inx2,inx3p:inx3] = constructpsf(metadata, c+1, True, psftype)
+				
+		if(('channels' in metadata) and ('frames' in metadata)):
+			multipsf = np.zeros((metadata['channels']['value'],metadata['X'],metadata['Y']))
+			for c in range(metadata['channels']['value']):
+				print('\nGenerating psf channel: ',c)
+				updateIndex(0, c)
+				multipsf[inx0p:inx0,inx1p:inx1,inx2p:inx2] = constructpsf(metadata, c+1, False, psftype)
+				
+		if(('frames' in metadata) and ('slices' in metadata)):
+			multipsf = constructpsf(metadata, 1, True, psftype)				
+			
 	#from tifffile import imsave
 	#imsave('psf_matrix.tif', np.uint8(multipsf), metadata = {'axes':'TZCYX'}, imagej=True)
 			
 	return multipsf
+
+def updateIndex(chnindex, pos):
+	global inx0, inx1, inx2, inx3, inx0p, inx1p, inx2p, inx3p
+
+	if (chnindex==0):
+		inx0 = pos+1
+		inx0p = pos
+	if (chnindex==1):
+		inx1 = pos+1
+		inx1p = pos
+	if (chnindex==2):
+		inx2 = pos+1
+		inx2p = pos
+	if (chnindex==3):
+		inx3 = pos+1
+		inx3p = pos
