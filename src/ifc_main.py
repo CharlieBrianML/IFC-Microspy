@@ -30,7 +30,9 @@ index = -1
 
 metadata_init = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
 'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
-'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0}}
+'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0, 'MaxSize':0.0},
+ 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0, 'MaxSize':0.0}
+ }
 
 def psf_winparmts(numch=1):
 	global metadata, opcPsf, entryem_wavelen, entryex_wavelen
@@ -39,32 +41,40 @@ def psf_winparmts(numch=1):
 	posy = 100
 	entryem_wavelen = []
 	entryex_wavelen = []
-	opcPsf.createLabel('PSF parameters ',20,70)
+	opcPsf.createLabel('PSF parameters ',20,70, family="Times New Roman")
 	for ch in range(numch):
-		opcPsf.createLabel('Ex_wavelenCh'+str(ch+1)+':                        [nm]',20,posy)
-		entryex_wavelen.append(opcPsf.createEntry(metadata['Channel '+str(ch+1)+' Parameters']['ExcitationWavelength'],160,posy))
-		posy = posy + 30
+		if ('Channel '+str(ch+1)+' Parameters' in metadata):
+			opcPsf.createLabel('Ex_wavelenCh'+str(ch+1)+':\t\t[nm]',20,posy, family="Courier")
+			entryex_wavelen.append(opcPsf.createEntry(metadata['Channel '+str(ch+1)+' Parameters']['ExcitationWavelength'],160,posy))
+			posy = posy + 30
 
 	for ch in range(numch):
-		opcPsf.createLabel('Em_wavelenCh'+str(ch+1)+':                      [nm] ',20,posy)
-		entryem_wavelen.append(opcPsf.createEntry(metadata['Channel '+str(ch+1)+' Parameters']['EmissionWavelength'],160,posy))
-		posy = posy + 30
+		if ('Channel '+str(ch+1)+' Parameters' in metadata):
+			opcPsf.createLabel('Em_wavelenCh'+str(ch+1)+':\t\t[nm] ',20,posy, family="Courier")
+			entryem_wavelen.append(opcPsf.createEntry(metadata['Channel '+str(ch+1)+' Parameters']['EmissionWavelength'],160,posy))
+			posy = posy + 30
 		
 	opcPsf.window.geometry('300x'+str(posy+210))	
 	
-	opcPsf.createLabel('Num_aperture:',20,posy)
-	opcPsf.createLabel('Pinhole_radius:                          [um]',20,posy+30)
-	opcPsf.createLabel('Magnification:',20,posy+60)
-	opcPsf.createLabel('Refr_index:',20,posy+90)
-	opcPsf.createLabel('Dim_z:                                        [um]',20,posy+120)
-	opcPsf.createLabel('Dim_xy:                                        [um]',20,posy+150)
+	opcPsf.createLabel('Num_aperture:',20,posy, family="Courier")
+	opcPsf.createLabel('Pinhole_radius:\t\t[um]',20,posy+30, family="Courier")
+	opcPsf.createLabel('Magnification:',20,posy+60, family="Courier")
+	opcPsf.createLabel('Refr_index:',20,posy+90, family="Courier")
+	opcPsf.createLabel('Size_xy:\t\t[um]',20,posy+120, family="Courier")
 	
 	entrynum_aperture = opcPsf.createEntry(metadata['num_aperture'],160,posy)
 	entrypinhole_radius = opcPsf.createEntry(metadata['pinhole_radius'],160,posy+30)
 	entrymagnification = opcPsf.createEntry(metadata['magnification'],160,posy+60)
 	entryrefr_index = opcPsf.createEntry(metadata['refr_index'],160,posy+90)
-	entrydimz = opcPsf.createEntry((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000,160,posy+120)
-	entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,posy+150)
+	
+	if('Axis 0 Parameters Common' in metadata):
+		entrydimr = opcPsf.createEntry(metadata['Axis 0 Parameters Common']['EndPosition'],160,posy+120)
+	else:	
+		entrydimr = opcPsf.createEntry(0.0,160,posy+120)
+	
+	if('slices' in metadata):
+		opcPsf.createLabel('Size_z:\t\t\t[um]',20,posy+150, family="Courier")
+		entrydimz = opcPsf.createEntry(np.abs((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000), 160,posy+150)
 
 def psf_parameters(flg=True):
 	global dropdownImg, dropdownPSF, metadata, opcPsf, opcimg, index
@@ -72,6 +82,7 @@ def psf_parameters(flg=True):
 	global entryex_wavelench1, entryem_wavelench1, entryex_wavelench2, entryem_wavelench2, entryex_wavelench3, entryem_wavelench3, entryex_wavelench4, entryem_wavelench4
 	
 	opcimg = "Deconvolution"
+	entrydimz = None
 	try:
 		if(len(it.windows_img)>1 and flg):
 			selectFile()
@@ -79,54 +90,34 @@ def psf_parameters(flg=True):
 			if (len(it.windows_img)==1):
 				index = -1
 			nameFile = it.windows_img[index].nameFile
-			pathFile = it.windows_img[index].path
-
-			if (nameFile.split('.')[-1]=='oib'):
-				try: 
-					metadata = oib.getMetadata(pathFile)
-				except KeyError:
-					messagebox.showinfo(message='No metadata found, please fill in the parameters manually')	
-					metadata = metadata_init
-					metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[0]
-					metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[1]					
-			elif (nameFile.split('.')[-1]=='tif'):
-				try:
-					metadata = tif.getMetadata(pathFile)
-					if (len(metadata)==0):
-						metadata = metadata_init
-					print(metadata)
-				except (KeyError, TypeError):
-					messagebox.showinfo(message='No metadata found, please fill in the parameters manually')
-					metadata = metadata_init
-					if (it.windows_img[index].tensor_img.ndim>2):
-						metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[0]
-						metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[1]
-					else:	
-						metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[0]
-						metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[1]
-			else:
-				metadata = metadata_init
-				metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[0]
-				metadata['Axis 3 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[1]		
+			metadata = it.windows_img[index].metadata
+			
+			for key in metadata_init:
+				if ( not(key in metadata) ):
+					metadata.update({key:metadata_init[key]})	
 				
 			opcPsf = it.NewWindow(it.windows_img[index].nameWindow,'300x550') #Objeto de la clase NewWindow
 			
 			#Creation of the psf parameters window
 			if (it.windows_img[index].tensor_img.ndim==4):
-				psf_winparmts(numch = it.windows_img[index].tensor_img.shape[1])
+				if ('channels' in metadata):
+					psf_winparmts(numch = metadata['channels']['value'])
+				else:
+					psf_winparmts()
+				
 			elif (it.windows_img[index].tensor_img.ndim==3):
 			
-				if (istiffRGB(it.windows_img[index].tensor_img.shape)): 	#Matrix of the form (x,y,r)
+				if (istiffRGB(it.windows_img[index].tensor_img.shape)):		#Matrix of the form (x,y,r)
 					psf_winparmts()
-				elif (it.windows_img[index].tensor_img.shape[0]>4): 		#Matrix of the form (z,x,y)
+				elif (('slices' in metadata) or ('frames' in metadata)): 	#Matrix of the form (z,x,y), (f,x,y)
 					psf_winparmts()
-				else: 												#Matrix of the form (c,x,y)
-					psf_winparmts(numch = it.windows_img[index].tensor_img.shape[0])
+				else: 														#Matrix of the form (c,x,y)
+					psf_winparmts(numch = metadata['channels']['value'])
 			else: 
 				psf_winparmts()
 
 			
-			opcPsf.createLabel('PSF type: ',20,10)
+			opcPsf.createLabel('PSF type: ',20,10, family="Times New Roman")
 			dropdownPSF = opcPsf.createCombobox(20,40)
 			opcPsf.createButton('Generate psf', createpsf_event, 'bottom')
 	except IndexError:
@@ -161,15 +152,14 @@ def tvd_event():
 			opcTVD.destroy()
 			img_tensor = it.windows_img[index].tensor_img
 			it.printMessage('Starting processing with weight equal to: '+str(w))
-			output = imf.tensorDenoisingTV(img_tensor, w)
-			output_img = it.NewWindow('TVD: '+it.windows_img[index].nameWindow+' w:'+str(w), image = True)
+			output = imf.tensorDenoisingTV(img_tensor, w, it.windows_img[index].metadata)
+			output_img = it.NewWindow('TVD: '+it.windows_img[index].nameWindow+' w:'+str(w), metadata=it.windows_img[index].metadata, image = True)
 			it.windows_img.append(output_img)
 			if(output.ndim==4):
 				output_img.desplay_image(output)
 			elif(output.ndim==3):
 				if(imf.istiffRGB(output.shape)):
 					print(output.max())
-					output = imf.normalizar(output)
 					output_img.placeImage(np.uint8(output))
 				else:
 					output_img.desplay_image(output)
@@ -189,7 +179,7 @@ def deconvolution_event():
 			i = int(entryIterations.get())
 			opcDeconv.destroy()
 			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i, it.windows_img[index].nameFile, metadata)
-			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[index].nameWindow+' i:'+str(i), image = True)
+			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[index].nameWindow+' i:'+str(i), metadata = metadata,image = True)
 			it.windows_img.append(deconvimg)
 			if(tensor_deconv.ndim==4):
 				deconvimg.desplay_image(tensor_deconv)
@@ -201,6 +191,7 @@ def deconvolution_event():
 				else: 
 					deconvimg.desplay_image(tensor_deconv)
 			else:
+				print("Shape: ",tensor_deconv.dtype)
 				deconvimg.placeImage(tensor_deconv)
 				deconvimg.tensor_img = tensor_deconv
 		else:
@@ -209,7 +200,7 @@ def deconvolution_event():
 		messagebox.showinfo(message='There are empty parameters, please check')
 	
 def createpsf_event():
-	global entryex_wavelen, entryem_wavelen
+	global entryex_wavelen, entryem_wavelen, entrydimz, entrydimr
 	global multipsf, opcPsf, entryIterations, dropdownPSF, metadata, entryrefr_index, opcDeconv
 	
 	# Extracting available metadata
@@ -231,11 +222,12 @@ def createpsf_event():
 	metadata['pinhole_radius'] = float(entrypinhole_radius.get())
 	metadata['magnification'] = float(entrymagnification.get())
 	metadata['refr_index'] = float(entryrefr_index.get())
-	metadata['Axis 3 Parameters Common']['EndPosition'] = float(entrydimz.get())
-	metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
-	#Quitar esta linea 
-	#ValueError: could not broadcast input array from shape (2,2) into shape (512,512) - Al leer archivo .lsm
-	metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].tensor_img.shape[-2]
+	
+	if(entrydimz != None):
+		metadata['Axis 3 Parameters Common']['EndPosition'] = float(entrydimz.get())
+	if(entrydimr != None):	
+		metadata['Axis 0 Parameters Common']['EndPosition'] = float(entrydimr.get())
+	metadata['Axis 0 Parameters Common']['MaxSize'] = it.windows_img[index].metadata['X']
 		
 	try:
 		if ((metadata['num_aperture']/metadata['refr_index'])<=1.0):
@@ -273,7 +265,7 @@ def neural_network_event(flg=True):
 		else: 
 			if (len(it.windows_img)==1):
 				index = -1		
-			nn(it.windows_img[index].tensor_img, index)
+			nn(it.windows_img[index].tensor_img, index, it.windows_img[index].metadata)
 	except IndexError:
 		messagebox.showinfo(message='There is no input parameter')
 		
@@ -307,14 +299,17 @@ def resize_event():
 		if(x>50 and y>50):
 			opcResize.destroy()
 			it.printMessage('Starting rescaled: ')
-			oldSize = it.windows_img[index].tensor_img.shape[-2]
-			it.windows_img[index].tensor_img = np.uint8(imf.resizeTensor(it.windows_img[index].tensor_img, x,y))
+			oldSize = it.windows_img[index].metadata['Y']
+			it.windows_img[index].tensor_img = imf.resizeTensor(it.windows_img[index].tensor_img, x,y, it.windows_img[index].metadata)
+			it.windows_img[index].metadata['X'] = x
+			it.windows_img[index].metadata['Y'] = y
 			it.windows_img[index].updatePanel(oldSize)
 			it.printMessage('Completed: size ('+str(x)+','+str(y)+')')
 		else: 
 			messagebox.showinfo(message='Values not accepted, you must enter a minimum value of 50')	
-	except ValueError:
-		messagebox.showinfo(message='There is no input parameter')		
+	# except ValueError:
+	except IOError:
+		messagebox.showinfo(message='There is no input parameter')
 		
 def selectFile():
 	"""This function select a file"""
@@ -345,9 +340,9 @@ def selectFile_event():
 		
 def about_event():
 	import cv2
-	about_win = it.NewWindow('About IFC Microscopy') #Objeto de la clase NewWindow
+	about_win = it.NewWindow('About IFC Microscopy', image=False) #Objeto de la clase NewWindow
 	img = cv2.imread('src/icon/About.png')
-	about_win.placeImage(img)
+	about_win.placeImageAbout(img)
 	about_win.createLabel('IFC Microscopy v0.6.25 ',115,30)
 	
 def close_windows_event():
