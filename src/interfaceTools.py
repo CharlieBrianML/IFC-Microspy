@@ -10,6 +10,7 @@
 #
 # ## ###############################################
 
+from locale import normalize
 from tkinter import *    # Carga módulo tk (widgets estándar)
 from tkinter import filedialog as fd
 from tkinter import ttk  # Carga ttk (para widgets nuevos 8.5+)
@@ -241,6 +242,7 @@ class NewWindow:
 			self.inx0, self.inx1, self.inx2, self.inx3 = (1, 1, 1, 1)
 			self.inx0p, self.inx1p, self.inx2p, self.inx3p = (None, None, None, None) #previous index
 			self.posz, self.posc, self.post, self.percent = (0, 0, 0, 100)
+			self.normalize = False
 		else: 
 			self.nameWindow = nameWindow
 			self.nameFile, self.path = (None, None)
@@ -269,6 +271,7 @@ class NewWindow:
 		self.tensor_img = img
 		self.validateSize()
 		self.createStatusBar()
+		self.createCheakButton('normalize',275,0)
 		resized = self.resize_image_percent(img, self.percent)
 		imageTk = ImageTk.PhotoImage(image=Image.fromarray(resized))
 		self.panelImg = Label(self.window, image = imageTk)
@@ -332,7 +335,20 @@ class NewWindow:
 		if (len(values)>0):
 			dropdown.current(0)
 		return dropdown
+
+	def createCheakButton(self, text, x, y):
+		self.checkvar = IntVar()
+		Checkbutton(self.window, text=text, command=self.normalizeImgPanel, variable=self.checkvar, onvalue=1, offvalue=0, height=1, width=6).place(x=x, y=y)
 		
+	def normalizeImgPanel(self):
+		if(self.checkvar.get()):
+			print('Normalizeing ',self.nameFile)
+			self.normalize = True
+			self.updatePanel()
+		else:
+			self.normalize = False
+			self.updatePanel()
+
 	def scrollbarz(self, maxpos):
 		self.scrollbarz = Scrollbar(self.window, orient=HORIZONTAL, command=self.scrollImagez)
 		self.scrollbarz.pack(side=BOTTOM,fill=X)
@@ -390,19 +406,20 @@ class NewWindow:
 			self.text = self.text + ' z:'+str(self.posz+1)+'/'+str(self.metadata['slices']['value'])
 		self.text = self.text + '  (' +str(self.metadata['X'])+ 'x' +str(self.metadata['Y'])+ ')' +' '+str(self.percent)+'%' + '  type: '+ str(self.metadata['type'])
 		
-	def resize_image_percent(self, img, percent, normalize=False):
+	def resize_image_percent(self, img, percent):
 		import cv2
 		import numpy as np
 		import src.imageFunctions as imf
 		width = int(img.shape[1] * percent / 100)
 		height = int(img.shape[0] * percent / 100)
 		dim = (width, height)	
-		
+
+		if self.normalize:
+			img = imf.normalizeImg(img, self.metadata)
+
 		# resize image
 		resized = cv2.resize(img, dim, interpolation = cv2.INTER_LINEAR)
-		if normalize:
-			print('Normalizing...')
-			resized = imf.normalizar(resized)
+
 		if (resized.dtype=='uint16'):
 			resized	= resized*(255/4095)
 		return resized
@@ -477,6 +494,7 @@ class NewWindow:
 			self.update_axes()
 			self.createStatusBar()
 			self.updateIndex()
+			self.createCheakButton('normalize',275,0)
 			self.panelImg = self.placeImageTensor( tensor_img[None:self.inx0,None:self.inx1,None:self.inx2,None:self.inx3].reshape((self.metadata['X'],self.metadata['Y'])) )
 			ttk.Button(self.window, text='+', command=self.increase_size).place(x=0,y=0,width=20,height=20)
 			ttk.Button(self.window, text='-', command=self.decrease_size).place(x=25,y=0,width=20,height=20)
@@ -485,7 +503,8 @@ class NewWindow:
 			self.validateSize()
 			self.update_axes()
 			self.createStatusBar()
-			self.updateIndex()			
+			self.updateIndex()
+			self.createCheakButton('normalize',275,0)		
 			self.panelImg = self.placeImageTensor( tensor_img[None:self.inx0,None:self.inx1,None:self.inx2].reshape((self.metadata['X'],self.metadata['Y'])) )
 			ttk.Button(self.window, text='+', command=self.increase_size).place(x=0,y=0,width=20,height=20)
 			ttk.Button(self.window, text='-', command=self.decrease_size).place(x=25,y=0,width=20,height=20)
@@ -585,16 +604,19 @@ class NewWindow:
 		self.panelImg['image'] = imageTk
 		self.panelImg.image = imageTk
 		
-	def updatePanel(self, oldSize):
+	def updatePanel(self, oldSize=0, new_percent=False):
 		import src.imageFunctions as imf
-		update_percent = int(self.metadata['Y']*(100/oldSize))
-		print('New percent: ', update_percent)
-		self.percent = update_percent
-		self.update_text()
-		self.statusbar.configure(text = self.text)
+		if new_percent:
+			update_percent = int(self.metadata['Y']*(100/oldSize))
+			print('New percent: ', update_percent)
+			self.percent = update_percent
+			self.update_text()
+			self.statusbar.configure(text = self.text)
+		else:
+			update_percent=self.percent
 		
 		if(self.tensor_img.ndim==2):		
-			imageTk = ImageTk.PhotoImage(image=Image.fromarray( self.resize_image_percent(self.tensor_img,update_percent) ))		
+			imageTk = ImageTk.PhotoImage(image=Image.fromarray( self.resize_image_percent(self.tensor_img,update_percent) ))	
 		if(self.tensor_img.ndim==3):
 			if(istiffRGB(self.tensor_img.shape)):		
 				imageTk = ImageTk.PhotoImage(image=Image.fromarray( self.resize_image_percent(self.tensor_img,update_percent) ))

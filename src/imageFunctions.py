@@ -11,6 +11,7 @@
 # ## ###############################################
 
 from ctypes import resize
+from locale import normalize
 from skimage.exposure import rescale_intensity
 from skimage.restoration import denoise_tv_chambolle
 import numpy as np
@@ -19,14 +20,13 @@ import cv2
 inx0, inx1, inx2, inx3 = (None, None, None, None)
 inx0p, inx1p, inx2p, inx3p = (None, None, None, None)
 
-def normalizar(data):
-	"""Normalizes a data matrix"""
-	max=np.amax(data)#Se calcula el valor maximo del vector
-	for p in range(data.shape[0]):
-		for m in range(data.shape[1]):
-			data[p][m]=(data[p][m]*256)/max  #Formula para normalizar los valores de [0, 255]
-	print('Max value: ', data.max())		
-	return data
+def normalizeImg(tensor, metadata):
+	"""Normalizes a data matrix"""	
+	if (metadata['type']=='uint8'):
+		normalized = np.uint8(tensor*(255/tensor.max()))
+	if (metadata['type']=='uint16'):
+		normalized = np.uint16(tensor*(4096/tensor.max()))
+	return normalized
 
 def rescaleSkimage(img):
 	"""Implement the function rescale_intensity from skimage"""

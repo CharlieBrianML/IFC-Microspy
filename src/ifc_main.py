@@ -303,7 +303,7 @@ def resize_event():
 			it.windows_img[index].tensor_img = imf.resizeTensor(it.windows_img[index].tensor_img, x,y, it.windows_img[index].metadata)
 			it.windows_img[index].metadata['X'] = x
 			it.windows_img[index].metadata['Y'] = y
-			it.windows_img[index].updatePanel(oldSize)
+			it.windows_img[index].updatePanel(oldSize=oldSize, new_percent=True)
 			it.printMessage('Completed: size ('+str(x)+','+str(y)+')')
 		else: 
 			messagebox.showinfo(message='Values not accepted, you must enter a minimum value of 50')	
