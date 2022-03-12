@@ -329,8 +329,8 @@ class NewWindow:
 		dropdown.current(13)
 		return dropdown		
 		
-	def createCombobox2(self,values,x,y):
-		dropdown = ttk.Combobox(self.window, state="readonly",values = values, width=40)
+	def createCombobox2(self,values,x,y,width=40):
+		dropdown = ttk.Combobox(self.window, state="readonly",values = values, width=width)
 		dropdown.place(x=x, y=y)
 		if (len(values)>0):
 			dropdown.current(0)

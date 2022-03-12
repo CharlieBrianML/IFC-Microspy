@@ -10,6 +10,7 @@
 #
 # ## ###############################################
 
+from ast import arg
 from tkinter import messagebox
 from shutil import rmtree
 import numpy as np
@@ -25,7 +26,7 @@ import src.esrgan
 
 entryIterations,entryWeight,dropdownImg, dropdownPSF, metadata, multipsf, opcDeconv, opcTVD, entryWeighttvd, entryrefr_index = (None,None,None,None,None,None,None, None, None, None)
 entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, tensor_deconv, img_tensor, cmbxFile, opcimg = (None,None,None,None,None,None,None,None, None)
-entryem_wavelen, entryex_wavelen, opcResize, entryX, entryY = (None, None,None, None, None)
+entryem_wavelen, entryex_wavelen, opcResize, entryX, entryY, refrindexType = (None,None, None,None, None, None)
 index = -1
 
 metadata_init = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
@@ -35,7 +36,7 @@ metadata_init = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWav
  }
 
 def psf_winparmts(numch=1):
-	global metadata, opcPsf, entryem_wavelen, entryex_wavelen
+	global metadata, opcPsf, entryem_wavelen, entryex_wavelen, refrindexType
 	global entrynum_aperture, entrypinhole_radius, entrymagnification, entrydimz, entrydimr, entryrefr_index
 	
 	posy = 100
@@ -58,8 +59,10 @@ def psf_winparmts(numch=1):
 	
 	opcPsf.createLabel('Num_aperture:',20,posy, family="Courier")
 	opcPsf.createLabel('Pinhole_radius:\t\t[um]',20,posy+30, family="Courier")
-	opcPsf.createLabel('Magnification:',20,posy+60, family="Courier")
+	opcPsf.createLabel('Magnification:\t\t X',20,posy+60, family="Courier")
 	opcPsf.createLabel('Refr_index:',20,posy+90, family="Courier")
+	refrindexType = opcPsf.createCombobox2(['None','oil','water','air','glycerin','parafin oil','cdwood oil','synthtic oil','anisole'],230,posy+90,width=7)
+	refrindexType.bind("<<ComboboxSelected>>", refrindexTypeEvent)
 	opcPsf.createLabel('Size_xy:\t\t[um]',20,posy+120, family="Courier")
 	
 	entrynum_aperture = opcPsf.createEntry(metadata['num_aperture'],160,posy)
@@ -75,6 +78,19 @@ def psf_winparmts(numch=1):
 	if('slices' in metadata):
 		opcPsf.createLabel('Size_z:\t\t\t[um]',20,posy+150, family="Courier")
 		entrydimz = opcPsf.createEntry(np.abs((metadata['Axis 3 Parameters Common']['StartPosition']-metadata['Axis 3 Parameters Common']['EndPosition'])/1000), 160,posy+150)
+
+def refrindexTypeEvent(*args):
+	global entryrefr_index, refrindexType, entrynum_aperture
+	refrindexs = ['',1.47, 1.33, 1.0003, 1.4695, 1.480, 1.515, 1.515, 1.5178]
+	if 'Axis 5 Parameters Common' in it.windows_img[index].metadata:
+		angle = int(it.windows_img[index].metadata['Axis 5 Parameters Common']['CalibrateValueA'])
+		print('Angle: ', angle)
+		if (refrindexType.current()!='None'):
+			entrynum_aperture.delete(0,'end')
+			entrynum_aperture.insert(0, "{:.2f}".format(refrindexs[refrindexType.current()]*np.sin(angle* np.pi / 180.)) )
+	print('Ref-Inx: ', refrindexs[refrindexType.current()])
+	entryrefr_index.delete(0,'end')
+	entryrefr_index.insert(0,refrindexs[refrindexType.current()])
 
 def psf_parameters(flg=True):
 	global dropdownImg, dropdownPSF, metadata, opcPsf, opcimg, index
