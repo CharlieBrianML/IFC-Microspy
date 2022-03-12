@@ -16,12 +16,12 @@ import numpy as np
 from skimage import io
 
 basicinfo = ('images', 'channels', 'frames','slices', 'hyperstack','Info')
-datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'SizeY', 'SizeZ', 'ObjectiveLens NAValue', 'PinholeDiameter', 
+datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'SizeY', 'SizeZ', 'ObjectiveLens NAValue', 'PinholeDiameter', 'Magnification','[Axis 5 Parameters Common] CalibrateValueA',
 '[Channel 1 Parameters] ExcitationWavelength', '[Channel 2 Parameters] ExcitationWavelength', '[Channel 3 Parameters] ExcitationWavelength',
 '[Channel 4 Parameters] ExcitationWavelength', '[Reference Image Parameter] HeightConvertValue', '[Reference Image Parameter] WidthConvertValue', 
 '[Channel 1 Parameters] EmissionWavelength', '[Channel 2 Parameters] EmissionWavelength', '[Channel 3 Parameters] EmissionWavelength','[Channel 4 Parameters] EmissionWavelength',
 '[Reference Image Parameter] HeightUnit', '[Axis 3 Parameters Common] PixUnit', '[Axis 3 Parameters Common] EndPosition', '[Axis 3 Parameters Common] StartPosition',
-'[Axis 3 Parameters Common] MaxSize', '[Axis 0 Parameters Common] MaxSize')
+'[Axis 3 Parameters Common] MaxSize', '[Axis 0 Parameters Common] MaxSize', '[Axis 0 Parameters Common] EndPosition')
 
 def readTiff(fileTiff):
 	"""Function that reads a .tif file"""
@@ -44,8 +44,9 @@ def imgtoMatrix(img_list):
 	return tiff_list
 	
 def metadata_format(metadata):
+	print(metadata)
 	"""Formats metadata extracted from a .tif file"""
-	metadata_dic = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},
+	metadata_dic = {'Channel 1 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0},'Channel 2 Parameters':{'ExcitationWavelength':0.0,'EmissionWavelength':0.0}, 'Axis 5 Parameters Common':{'CalibrateValueA':0.0},
 	'Channel 3 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'Channel 4 Parameters':{'ExcitationWavelength':0.0, 'EmissionWavelength':0.0}, 'refr_index': 0.0,
 	'num_aperture':0.0,'pinhole_radius':0.0,'magnification':0.0, 'Axis 3 Parameters Common':{'EndPosition':0.0,'StartPosition':0.0,'MaxSize':0.0}, 'Axis 0 Parameters Common':{'EndPosition':0.0, 'StartPosition':0.0, 'MaxSize':0.0}}
 
@@ -57,25 +58,30 @@ def metadata_format(metadata):
 	metadata_dic['Channel 2 Parameters']['EmissionWavelength'] = float(metadata['[Channel1Parameters]EmissionWavelength'])
 	metadata_dic['Channel 3 Parameters']['EmissionWavelength'] = float(metadata['[Channel1Parameters]EmissionWavelength'])
 	metadata_dic['Channel 4 Parameters']['EmissionWavelength'] = float(metadata['[Channel1Parameters]EmissionWavelength'])
+	metadata_dic['Axis 5 Parameters Common']['CalibrateValueA'] = float(metadata['[Axis5ParametersCommon]CalibrateValueA'])
 	metadata_dic['num_aperture'] = float(metadata['ObjectiveLensNAValue'])
+	print("NA:", float(metadata['ObjectiveLensNAValue']) )
 	metadata_dic['pinhole_radius'] = (float(metadata['PinholeDiameter']))/2
-	metadata_dic['magnification'] = 0.75
-	metadata_dic['refr_index'] = 1.5
+	print("Pinhole:", (float(metadata['PinholeDiameter']))/2 )
+	metadata_dic['magnification'] = float(metadata['Magnification'])
+	print("Magnification:", float(metadata['Magnification']) )
+	metadata_dic['refr_index'] = "{:.2f}".format( float(metadata['ObjectiveLensNAValue']) / np.sin(metadata_dic['Axis 5 Parameters Common']['CalibrateValueA']* np.pi / 180.) )
+	print("Refr:indx: ",metadata_dic['refr_index'])
 	metadata_dic['Axis 3 Parameters Common']['EndPosition'] = float(metadata['[Axis3ParametersCommon]EndPosition'])
 	metadata_dic['Axis 3 Parameters Common']['StartPosition'] = float(metadata['[Axis3ParametersCommon]StartPosition'])
 	metadata_dic['Axis 3 Parameters Common']['MaxSize'] = float(metadata['[Axis3ParametersCommon]MaxSize'])
 	metadata_dic['Axis 0 Parameters Common']['MaxSize'] = float(metadata['[Axis0ParametersCommon]MaxSize'])
-	metadata_dic['Axis 0 Parameters Common']['EndPosition'] = float(metadata['[ReferenceImageParameter]HeightConvertValue'])
+	metadata_dic['Axis 0 Parameters Common']['EndPosition'] = float(metadata['[Axis0ParametersCommon]EndPosition'])
 	return metadata_dic
 
 def getMetadata(filename):
 	"""Get metadata from a .tif file"""
-	metadata = {'path':filename, 'name':filename.split('/')[-1], 'tensor':io.imread(filename), 'num_aperture':1.35, 'pinhole_radius':(120000/1000)/2, 'magnification': 0.75, 'refr_index':1.45}
+	metadata = {'path':filename, 'name':filename.split('/')[-1], 'tensor':io.imread(filename), 'num_aperture':1.35, 'pinhole_radius':(120000/1000)/2, 'magnification': 60, 'refr_index':1.47}
 	try:	
 		with tifffile.TiffFile(filename) as tif:
 			imagej_hyperstack = tif.asarray()
 			imagej_metadata = tif.imagej_metadata #Diccionario con todos los metadatos
-
+		# print(imagej_metadata)
 		#Se obtienen los metadatos de interes
 		for tag in imagej_metadata:
 			if tag in basicinfo:
