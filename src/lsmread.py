@@ -16,12 +16,12 @@ import numpy as np
 from skimage import io
 
 basicinfo = ('images', 'channels', 'frames','slices', 'hyperstack','Info')
-datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'SizeY', 'SizeZ', 'ObjectiveLens NAValue', 'PinholeDiameter', 
+datainfo = ('DimensionOrder', 'IsRGB', 'PixelType', 'SizeC','SizeT', 'SizeX', 'SizeY', 'SizeZ', 'ObjectiveLens NAValue', 'PinholeDiameter', 'Magnification','[Axis 5 Parameters Common] CalibrateValueA',
 '[Channel 1 Parameters] ExcitationWavelength', '[Channel 2 Parameters] ExcitationWavelength', '[Channel 3 Parameters] ExcitationWavelength',
 '[Channel 4 Parameters] ExcitationWavelength', '[Reference Image Parameter] HeightConvertValue', '[Reference Image Parameter] WidthConvertValue', 
 '[Channel 1 Parameters] EmissionWavelength', '[Channel 2 Parameters] EmissionWavelength', '[Channel 3 Parameters] EmissionWavelength','[Channel 4 Parameters] EmissionWavelength',
 '[Reference Image Parameter] HeightUnit', '[Axis 3 Parameters Common] PixUnit', '[Axis 3 Parameters Common] EndPosition', '[Axis 3 Parameters Common] StartPosition',
-'[Axis 3 Parameters Common] MaxSize', '[Axis 0 Parameters Common] MaxSize')
+'[Axis 3 Parameters Common] MaxSize', '[Axis 0 Parameters Common] MaxSize', '[Axis 0 Parameters Common] EndPosition')
 
 def readTiff(fileTiff):
 	"""Function that reads a .tif file"""
