@@ -132,7 +132,7 @@ def constructpsf(metadata, channel, psf_vol, psftype):
 		dims = (metadata['Axis 3 Parameters Common']['EndPosition']/1000,metadata['Axis 0 Parameters Common']['EndPosition'])
 	else:
 		shape = (int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1),int((metadata['Axis 0 Parameters Common']['MaxSize']/2)+1))
-		dims = (metadata['Axis 0 Parameters Common']['EndPosition']/2,metadata['Axis 0 Parameters Common']['EndPosition']/2)
+		dims = (metadata['Axis 0 Parameters Common']['EndPosition'],metadata['Axis 0 Parameters Common']['EndPosition'])
 	ex_wavelen = metadata['Channel '+str(channel)+' Parameters']['ExcitationWavelength']
 	em_wavelen = metadata['Channel '+str(channel)+' Parameters']['EmissionWavelength']
 	num_aperture = metadata['num_aperture']
