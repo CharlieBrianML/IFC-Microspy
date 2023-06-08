@@ -185,8 +185,11 @@ def istiffRGB(tiff):
 		return False
 	  
 def getMetadataImg(filepath):
+	import matplotlib.pyplot as plt
 	"""Get metadata from a .tif file"""
-	matrix = cv2.imread(filepath)
+	matrix = plt.imread(filepath)
+	matrix = matrix[:,:,0:3]
+	print(matrix)
 	metadata = {'path':filepath, 'name':filepath.split('/')[-1], 'tensor':matrix, 'type':matrix.dtype,'X':matrix.shape[0],'Y':matrix.shape[1], 'num_aperture':1.35, 'pinhole_radius':(120000/1000)/2, 'magnification': 60.0, 'refr_index':1.47}
 	return metadata
 	

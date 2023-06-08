@@ -195,7 +195,7 @@ def deconvolution_event():
 			i = int(entryIterations.get())
 			opcDeconv.destroy()
 			tensor_deconv = dv.deconvolutionMain(img_tensor,multipsf,i, it.windows_img[index].nameFile, metadata)
-			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[index].nameWindow+' i:'+str(i), metadata = metadata,image = True)
+			deconvimg = it.NewWindow('Deconvolution '+it.windows_img[index].nameWindow+' i-'+str(i), metadata = metadata,image = True)
 			it.windows_img.append(deconvimg)
 			if(tensor_deconv.ndim==4):
 				deconvimg.desplay_image(tensor_deconv)

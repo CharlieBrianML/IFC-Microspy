@@ -126,13 +126,13 @@ def saveFileEvent():
 	try:
 		if(image.ndim==4):
 			savepath = fd.asksaveasfilename(initialdir = currentDir,title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),))
-			currentDir = filepath
+			currentDir = savepath
 			if (savepath!=''):
 				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
 				printMessage('Saved file: '+savepath)
 		if(image.ndim==3):
 			savepath = fd.asksaveasfilename(initialdir = currentDir,title = 'Select a file', defaultextension = '.tif', initialfile = namewin, filetypes = (('tif files','*.tif'),('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
-			currentDir = filepath
+			currentDir = savepath
 			if(not(istiffRGB(image.shape))):			
 				tifffile.imsave(savepath, np.uint16(image*(65535/image.max())), imagej=True)
 				printMessage('Saved file: '+savepath)
@@ -141,11 +141,11 @@ def saveFileEvent():
 				printMessage('Saved file: '+savepath)	
 		if(image.ndim==2):	
 			savepath = fd.asksaveasfilename(initialdir = currentDir,title = 'Select a file', defaultextension = '.png', initialfile = namewin, filetypes = (('png files','*.png'),('jpg files','*.jpg'),('bmp files','*.bmp')))
-			currentDir = filepath
+			currentDir = savepath
 			cv2.imwrite(savepath, image)
 			printMessage('Saved file: '+savepath)
 		opcSF.destroy()	
-	except:
+	except ArithmeticError:
 		messagebox.showinfo(message='Error when trying to save the file, try again')
 		print("Error: ", sys.exc_info()[0])
 		
