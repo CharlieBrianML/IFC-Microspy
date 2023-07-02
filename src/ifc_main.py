@@ -359,7 +359,7 @@ def about_event():
 	about_win = it.NewWindow('About IFC Microscopy', image=False) #Objeto de la clase NewWindow
 	img = cv2.imread('src/icon/About.png')
 	about_win.placeImageAbout(img)
-	about_win.createLabel('IFC Microscopy v0.6.25 ',115,30)
+	about_win.createLabel('IFC Microscopy v1.11.25 ',115,30)
 	
 def close_windows_event():
 	for i in range(len(it.windows_img)):

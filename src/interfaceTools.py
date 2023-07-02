@@ -224,7 +224,8 @@ def createStatusBar():
 	"""This function creates a status bar"""
 	global statusbar
 	v = os.popen('git tag').read().split('\n')
-	statusbar = Label(mainWindow, text='IFC Microspy '+v[0], bd=1, relief=SUNKEN, anchor=W)
+	print(v)
+	statusbar = Label(mainWindow, text='IFC Microspy '+v[-2], bd=1, relief=SUNKEN, anchor=W)
 	statusbar.pack(side=BOTTOM, fill=X)
 	return statusbar
 	
